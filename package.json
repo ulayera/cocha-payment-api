@@ -1,0 +1,49 @@
+{
+  "name": "cocha-payment-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "API used for COCHA payment app",
+  "main": "app.js",
+  "dependencies": {
+    "cocha-external-services": "git+ssh://git@bitbucket.org/cocha-digital/cocha-external-services.git",
+    "cron": "^1.3.0",
+    "koa": "^2.3.0",
+    "koa-bodyparser": "^4.2.0",
+    "koa-router": "^7.2.1",
+    "lodash": "^4.17.4",
+    "loopback-connector-mysql": "^5.1.0",
+    "loopback-datasource-juggler": "^3.12.0",
+    "moment": "^2.17.1",
+    "redis": "^2.6.0-1",
+    "request": "^2.81.0"
+  },
+  "devDependencies": {
+    "jest": "^15.1.1",
+    "jshint": "latest"
+  },
+  "scripts": {
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "lint": "jshint */**.js",
+    "start": "node app.js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [],
+    "coverageThreshold": {
+      "global": {
+        "branches": 50,
+        "functions": 50,
+        "lines": 50,
+        "statements": 50
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://bitbucket.org/cocha-digital/cocha--api.git"
+  },
+  "homepage": "https://bitbucket.org/cocha-digital/cocha--api#readme",
+  "author": "Leonardo Diaz <ldiaz@cocha.com>",
+  "license": "ISC"
+}
