@@ -6,7 +6,7 @@ function validateRut(ctx) {
 		rut: ctx.params.rut,
 		dv: ctx.params.dv
 	};
-	ctx.body = 'El arbol de la tecnologia';
+	ctx.body = await itauServices.validateRut(ctx);
 
 }
 function dynamicPasswordGenerator(ctx) {

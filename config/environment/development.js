@@ -2,6 +2,19 @@
 
 module.exports = {
 	path: {
+		itau:{
+			validateRut: 'http://itau20apicert.celmedia.cl/ValidaRutCanje',
+			generateDynamicKey: 'http://itau20apicert.celmedia.cl/GeneraClaveDinamica',
+			checkDynamicKey: 'http://itau20apicert.celmedia.cl/CompruebaClaveDinamica',
+			startSession: 'http://itau20apicert.celmedia.cl/InicioSesion'
+		}
+	},
+	security: {
+		itau: {
+			providerId: 1,
+			apiKey: '$2y$10$qcSivIyzCm2g0u53WCk5Sug/h3wENYIRIxmuCcbOUq2k4nnLpnMz6',
+			apiKeyUser: '$2y$10$cZcEXCkUQgQmb729sfnor.tA3rwPEwhLGmb2tEuJ3/UuHew1FdosO'
+		}
 	},
 	log: {
 		level: 'verbose',

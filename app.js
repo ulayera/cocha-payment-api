@@ -74,7 +74,10 @@ app.use(bodyParser);
 
 app.use(async (ctx, next) => {
 	ctx.params = _.assign(ctx.params, ctx.request.query, ctx.request.body);
-	ctx.authSession = {};
+	ctx.authSession = {
+		trackId: ctx.request.header.trackid,
+		flowId: ctx.request.header.flowid
+	};
 
 	try {
 		await next();
