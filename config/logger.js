@@ -9,7 +9,7 @@ function getStack() {
 	originalStackTrace = Error.prepareStackTrace;
 	Error.prepareStackTrace = (something, stack) => {return stack;};
 	errorAux = new Error;
-	Error.captureStackTrace(errorAux, Function.caller);
+	Error.captureStackTrace(errorAux);
 	stack = errorAux.stack[3];
 	Error.prepareStackTrace = originalStackTrace;
 

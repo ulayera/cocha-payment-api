@@ -1,15 +1,18 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
 
-function validateRut(ctx) {
+const itauService = require('../services/itauService');
+
+async function validateRut(ctx) {
 	let params = {
 		rut: ctx.params.rut,
 		dv: ctx.params.dv
 	};
-	ctx.body = await itauServices.validateRut(ctx);
 
+	ctx.body = await itauService.validateRut(ctx);
 }
-function dynamicPasswordGenerator(ctx) {
+
+async function dynamicPasswordGenerator(ctx) {
 	let params = {
 		rut: ctx.params.rut,
 		dv: ctx.params.dv,
@@ -18,7 +21,8 @@ function dynamicPasswordGenerator(ctx) {
 		email: ctx.params.email
 	};
 }
-function dynamicPasswordCheck(ctx) { 
+
+async function dynamicPasswordCheck(ctx) { 
 	let params = { 
 		rut: ctx.params.rut,
 		dv: ctx.params.dv,
@@ -27,7 +31,8 @@ function dynamicPasswordCheck(ctx) {
 		clave_id_generada: ctx.params.clave_id_generada
 	}
 }
-function login(ctx) {
+
+async function login(ctx) {
 	let params = {
 		rut: ctx.params.rut, 
 		dv: ctx.params.dv,
@@ -35,7 +40,8 @@ function login(ctx) {
 		clave_id_generada: ctx.params.clave_id_generada
 	}
 }
-function validateCustomFlow(ctx) {
+
+async function validateCustomFlow(ctx) {
 	let params = {
 		rut: ctx.params.rut, 
 		dv: ctx.params.dv,
@@ -44,9 +50,9 @@ function validateCustomFlow(ctx) {
 		clave_generada: ctx.params.clave_generada,
 		numero_pagina: ctx.params.numero_pagina
 	}
+}
 
-	}
-function preExchangeRequest(ctx) {
+async function preExchangeRequest(ctx) {
 	let params = {
 		rut: ctx.params.rut,
 		dv: ctx.params.dv,
@@ -59,13 +65,15 @@ function preExchangeRequest(ctx) {
 		precanje_id: ctx.params.precanje_id
 	}
 }
-function validateClientStatus(ctx) { 
+
+async function validateClientStatus(ctx) { 
 	let params = {
 		rut: ctx.params.rut, 
 		dv: ctx.params.dv
 	}
 }
-function performExchange(ctx) { 
+
+async function performExchange(ctx) { 
 	let params = {
 		rut: ctx.params.rut,
 		dv: ctx.params.rut,
@@ -76,16 +84,18 @@ function performExchange(ctx) {
 		glosa_canje: ctx.params.glosa_canje,
 		orden_compra: ctx.params.orden_compra
 	}
+}
+
+async function cancelPreExchange(ctx) {
+	let params = {
+		rut: ctx.params.rut,
+		dv: ctx.params.dv, 
+		proveedor_id: ctx.params.proveedor_id,
+		precanje_id: ctx.params.precanje_id,
+		producto_id: ctx.params.producto_id
 	}
-	function cancelPreExchange(ctx) {
-		let params = {
-			rut: ctx.params.rut,
-			dv: ctx.params.dv, 
-			proveedor_id: ctx.params.proveedor_id,
-			precanje_id: ctx.params.precanje_id,
-			producto_id: ctx.params.producto_id
-		}
-	}
+}
+
 module.exports = {
 	validateRut: validateRut,
 	dynamicPasswordGenerator:dynamicPasswordGenerator,
