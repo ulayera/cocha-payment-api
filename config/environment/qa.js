@@ -5,7 +5,7 @@ module.exports = {
 		itau:{
 			validateRut: 'http://itau20apicert.celmedia.cl/ValidaRutCanje',
 			generateDynamicKey: 'http://itau20apicert.celmedia.cl/GeneraClaveDinamica',
-			checkDynamicKey: 'http://itau20apicert.celmedia.cl/CompruebaClaveDinamica',
+			checkDynamicKey: 'http://itau20apicert.celmedia.cl/CompruebaClaveDinamica/:rut/:dv/:providerId/:dynamicKey/:dynamicKeyId',
 			startSession: 'http://itau20apicert.celmedia.cl/InicioSesion'
 		}
 	},
