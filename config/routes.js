@@ -8,16 +8,16 @@ module.exports = {
 		action: 'validateRut',
 		auth: null
 	},
-	'/dynamicpasswordgenerator/:rut/dv/:proveedor_id/:telefono/:email' : {
+	'/senddynamickey' : {
 		method:	'GET',
 		controller: 'ItauController',
-		action: 'dynamicpasswordgenerator', 
+		action: 'sendDynamicKey', 
 		auth: null 
 	},
-	'/dynamicpasswordcheck/:rut/dv/:proveedor_id/:clave_generada/:clave_id_generada' : {
+	'/checkdynamickey/:rut/dv/:proveedor_id/:clave_generada/:clave_id_generada' : {
 		method: 'GET',
 		controller: 'ItauController',
-		action: 'dynamicpasswordcheck',
+		action: 'checkDynamicKey',
 		auth: null 
 	},
 	'/login/:rut/:dv/:proveedor_id/:clave_id_generada' : { 

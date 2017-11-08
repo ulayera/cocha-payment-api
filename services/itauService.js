@@ -10,8 +10,8 @@ async function validateRut(_ctx) {
     'api-key-user': Koa.config.security.itau.apiKeyUser
   };
   let params = {
-    rut: '8369687',
-    dv: '7',
+    rut: '5711401',
+    dv: '0',
     proveedor_id: Koa.config.security.itau.providerId,
   };
 
@@ -29,8 +29,36 @@ async function validateRut(_ctx) {
   return data;
 }
 
+async function generateDynamicKey(_ctx) {
+  let url = Koa.config.path.itau.generateDynamicKey;
+  let header = {
+    'api-key': Koa.config.security.itau.apiKey,
+    'api-key-user': Koa.config.security.itau.apiKeyUser
+  };
+  let params = {
+    rut: '5711401',
+    dv: '0',
+    proveedor_id: Koa.config.security.itau.providerId,
+    telefono: '5698440xxxx',
+    email: ''
+  };
+  let data = await new Promise((resolve, reject) => {
+    webServices.post('payment', url, params, header, (err, result) => {
+      //console.log("AKIIIIL===>", err, result.meta, result.response);
+      console.log("AKIIIIL===>", result.response);
+      if (err) {
+        err = getErrorByType(err.data.msg.meta);
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    }, _ctx.authSession);
+  });
+}
+
 module.exports = {
-	validateRut: validateRut,
+  validateRut: validateRut,
+  generateDynamicKey: generateDynamicKey
 };
 
 function getErrorByType(_meta) {

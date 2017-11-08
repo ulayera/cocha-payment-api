@@ -12,7 +12,7 @@ async function validateRut(ctx) {
 	ctx.body = await itauService.validateRut(ctx);
 }
 
-async function dynamicPasswordGenerator(ctx) {
+async function sendDynamicKey (ctx) {
 	let params = {
 		rut: ctx.params.rut,
 		dv: ctx.params.dv,
@@ -20,9 +20,10 @@ async function dynamicPasswordGenerator(ctx) {
 		telefono: ctx.params.telefono,
 		email: ctx.params.email
 	};
+	ctx.body = await itauService.generateDynamicKey(ctx); 
 }
 
-async function dynamicPasswordCheck(ctx) { 
+async function checkDynamicKey(ctx) { 
 	let params = { 
 		rut: ctx.params.rut,
 		dv: ctx.params.dv,
@@ -98,8 +99,8 @@ async function cancelPreExchange(ctx) {
 
 module.exports = {
 	validateRut: validateRut,
-	dynamicPasswordGenerator:dynamicPasswordGenerator,
-	dynamicPasswordCheck:dynamicPasswordCheck, 
+	sendDynamicKey:sendDynamicKey,
+	checkDynamicKey:checkDynamicKey, 
 	login:login,
 	validateCustomFlow:validateCustomFlow,
 	preExchangeRequest:preExchangeRequest,
