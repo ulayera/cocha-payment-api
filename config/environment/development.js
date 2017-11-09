@@ -27,7 +27,8 @@ module.exports = {
 		host: process.env.REDIS_HOST || '127.0.0.1',
 		port: parseInt(process.env.REDIS_PORT) || 6379,
 		db: parseInt(process.env.REDIS_DB) || 0,
-		expire: 60 * 60 * 24 // Seconds -> 24h
+		expire: 60 * 60 * 24, // Seconds -> 24h
+		expireUserSession: 60 * 25 // Seconds -> 25m
 	},
 	mysqlConf: {
 		host: process.env.MYSQL_HOST || '192.168.254.162',

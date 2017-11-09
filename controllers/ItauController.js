@@ -1,26 +1,60 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
 
-const itauService = require('../services/itauService');
+const userSessionModel = require('../models/redis/UserSession');
+const itauService = require('../services/ItauService');
 
 async function validateRut(ctx) {
-	let params = {
-		rut: ctx.params.rut,
-		dv: ctx.params.dv
-	};
+	if (true) { //ctx.params.paymentSessionCode es valido?
+		let userData = await itauService.validateRut(ctx);
 
-	ctx.body = await itauService.validateRut(ctx);
+		userData.paymentSession = ctx.params.paymentSessionCode;
+
+		ctx.params.phoneNumber = userData.phoneNumber;
+		ctx.params.email = userData.email;
+		let dynamicKeyData = await itauService.generateDynamicKey(ctx); 
+
+		userData.dynamicKey = dynamicKeyData;
+		userSessionModel.createUserSession(ctx.authSession.paymentIntentionId, userData, 'sessionClose');
+		
+		ctx.body = {
+			status: 'Complete',
+			name: userData.name,
+			phone: userData.phoneNumber,
+			expireDate: dynamicKeyData.expiration 
+		};
+	}
 }
 
 async function sendDynamicKey (ctx) {
-	let params = {
-		rut: ctx.params.rut,
-		dv: ctx.params.dv,
-		proveedor_id: ctx.params.proveedor_id,
-		telefono: ctx.params.telefono,
-		email: ctx.params.email
-	};
-	ctx.body = await itauService.generateDynamicKey(ctx); 
+	let userData = ctx.authSession.userSessionData;
+	if (userData.dynamicKey.attempts > 3) {
+		throw {
+			status: 401,
+			message: {
+				code: 'AttemptsError',
+				msg: 'Estimado Cliente, ha excedido el número de intentos'
+			}
+		};
+	}
+	if (true) { //ctx.params.paymentSessionCode es valido?
+		ctx.params.rut = userData.rut;
+		ctx.params.dv = userData.dv;
+		ctx.params.phoneNumber = userData.phoneNumber;
+		ctx.params.email = userData.email;
+		let dynamicKeyData = await itauService.generateDynamicKey(ctx);
+
+		// dynamicKeyData.attempts = userData.dynamicKey.attempts + 1 //Testing
+		userData.dynamicKey = dynamicKeyData;
+		userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
+
+		ctx.body = {
+			status: 'Complete',
+			name: userData.name,
+			phone: userData.phoneNumber,
+			expireDate: dynamicKeyData.expiration 
+		}; 
+	}
 }
 
 async function checkDynamicKey(ctx) { 

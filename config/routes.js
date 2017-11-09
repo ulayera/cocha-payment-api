@@ -2,18 +2,29 @@
 /* jshint strict: false, esversion: 6 */
 
 module.exports = {
-	'/validaterut/:rut/:dv': {
+	'/validaterut/:paymentSessionCode/:rut/:dv': {
 		method: 'GET',
 		controller: 'ItauController',
 		action: 'validateRut',
-		auth: null
+		auth: {
+			strategy: 'intentionStrategy',
+			redirect: null
+		}
 	},
 	'/senddynamickey' : {
 		method:	'GET',
 		controller: 'ItauController',
 		action: 'sendDynamicKey', 
-		auth: null 
+		auth: {
+			strategy: 'paymentIntentionStrategy',
+			redirect: null
+		} 
 	},
+	
+	
+	
+	
+	
 	'/checkdynamickey/:rut/dv/:proveedor_id/:clave_generada/:clave_id_generada' : {
 		method: 'GET',
 		controller: 'ItauController',

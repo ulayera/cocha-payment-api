@@ -53,8 +53,8 @@ _.forEach(routes, (route, key) => {
 		let valid = true; 
 		if (route.auth) {
 			valid = await authenticator[route.auth.strategy](ctx.request.header, ctx.params);
-			ctx.authType = (valid.type)? valid.type : valid;
-			ctx.authSession = (valid.sessionData)? valid.sessionData : ctx.authSession;
+			ctx.authType = valid && valid.type;
+			ctx.authSession = (valid && valid.sessionData)? valid.sessionData : ctx.authSession;
 		}
 
 		if (valid) {
@@ -64,7 +64,7 @@ _.forEach(routes, (route, key) => {
 			if (route.auth.redirect) {
 				ctx.redirect(route.auth.redirect);
 			} else {
-				throw {status: 401, message: 'Access denied'};
+				throw {status: 401, message: {code: 'AuthError', msg: 'Access denied'}};
 			}
 		}
 	});
@@ -78,6 +78,8 @@ app.use(async (ctx, next) => {
 		trackId: ctx.request.header.trackid,
 		flowId: ctx.request.header.flowid
 	};
+
+	ctx.request.header.paymentIntention = 'codigoprueba'; //PARA test
 
 	try {
 		await next();
