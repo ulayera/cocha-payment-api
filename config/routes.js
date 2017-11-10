@@ -20,21 +20,24 @@ module.exports = {
 			redirect: null
 		} 
 	},
-	
-	
-	
-	
-	
-	'/checkdynamickey/:rut/dv/:proveedor_id/:clave_generada/:clave_id_generada' : {
+	'/checkdynamickey/:dynamicKey' : {
 		method: 'GET',
 		controller: 'ItauController',
 		action: 'checkDynamicKey',
-		auth: null 
+		auth: {
+			strategy: 'paymentIntentionStrategy',
+			redirect: null
+		}
 	},
-	'/login/:rut/:dv/:proveedor_id/:clave_id_generada' : { 
+	
+	
+	
+	
+	
+	'/startSession/:rut/:dv/:proveedor_id/:clave_id_generada' : { 
 		method: 'GET', 
 		controller: 'ItauController',
-		action:	'login',
+		action:	'startSession',
 		auth: null 
 	},
 	'validatecustomflow/:rut/:dv/:proveedor_id/:clave_id_generada/:clave_generada/:numero_pagina' : {

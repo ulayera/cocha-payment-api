@@ -74,11 +74,11 @@ async function checkDynamicKey(_ctx) {
 		'api-key-user': Koa.config.security.itau.apiKeyUser
 	};
 	let params = {
-		rut: '8369687',
-		dv: '7',
+		rut: _ctx.params.rut,
+		dv: _ctx.params.dv, 
 		providerId: Koa.config.security.itau.providerId,
-		dynamicKey: '',
-		dynamicKeyId: ''
+		dynamicKey: _ctx.params.dynamicKey,
+		dynamicKeyId: _ctx.params.dynamicKeyId
 	};
 
 	let data = await new Promise((resolve, reject) => {
@@ -95,10 +95,40 @@ async function checkDynamicKey(_ctx) {
 	return data;
 }
 
+async function startSession(_ctx) {
+  let url = Koa.config.path.itau.startSession;
+  let header = {
+    'api-key': Koa.config.security.itau.apiKey,
+    'api-key-user': Koa.config.security.itau.apiKeyUser
+  };
+  let params = {
+    rut: _ctx.params.rut,
+    dv: _ctx.params.dv,
+    proveedor_id: 'Koa.config.security.itau.providerId',
+    clave_id_generada: ''
+  };
+  let data = await new Promise((resolve, reject) => {
+    webServices.post('payment', url, params, header, (err, result) => {
+        if (err) {
+        err = getErrorByType(err.data.msg.meta);
+        reject(err);
+      } else {
+        resolve({
+	status: result.response.CLV_ESTADO,
+	message: result.response.CLV_MENSAJE,
+	expiration: result.response.CLV_FCH_EXPIRA_CLAVE,
+	});
+	}
+    }, _ctx.authSession);
+  });
+return data;
+}
+
 module.exports = {
 	validateRut: validateRut,
 	generateDynamicKey: generateDynamicKey,
-	checkDynamicKey: checkDynamicKey
+  checkDynamicKey: checkDynamicKey,
+  startSession: startSession
 };
 
 function getErrorByType(_meta) {

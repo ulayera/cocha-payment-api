@@ -58,23 +58,35 @@ async function sendDynamicKey (ctx) {
 }
 
 async function checkDynamicKey(ctx) { 
-	let params = { 
-		rut: ctx.params.rut,
-		dv: ctx.params.dv,
-		proveedor_id: ctx.params.proveedor_id,
-		clave_generada: ctx.params.clave_generada,
-		clave_id_generada: ctx.params.clave_id_generada
+	let userData = ctx.authSession.userSessionData;
+	if (true) { //ctx.params.paymentSessionCode es valido?
+		ctx.params.rut = userData.rut;
+		ctx.params.dv = userData.dv;
+		ctx.params.dynamicKeyId = userData.dynamicKey.id;
+		let dynamicKeyStatus = await itauService.checkDynamicKey(ctx); 
+		ctx.body = {
+			dynamicKeyStatus: dynamicKeyStatus
+		};
+	}
+	let	startSessionData = await itauService.startSession(ctx)
+	userData.startSession = startSessionData
+	userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData)
+
+	ctx.body = {
+		status: 'Start Session',
+		name: userData.name,
+		expireDate: dynamicKeyData.expiration
 	}
 }
 
-async function login(ctx) {
-	let params = {
-		rut: ctx.params.rut, 
-		dv: ctx.params.dv,
-		proveedor_id: ctx.params.proveedor_id,
-		clave_id_generada: ctx.params.clave_id_generada
-	}
-}
+// async function startSession(ctx) {
+//	let params = {
+//		rut: ctx.params.rut, 
+//		dv: ctx.params.dv,
+//		proveedor_id: ctx.params.proveedor_id,
+//		clave_id_generada: ctx.params.clave_id_generada
+//	}
+// }
 
 async function validateCustomFlow(ctx) {
 	let params = {
