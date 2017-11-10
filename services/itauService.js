@@ -87,7 +87,9 @@ async function checkDynamicKey(_ctx) {
 			if (err) {
 				reject(err);
 			} else {
-				resolve(result);
+				resolve({
+					status: result.response.CLV_MENSAJE
+        });
 			}
 		}, _ctx.authSession);
 	});
@@ -102,20 +104,19 @@ async function startSession(_ctx) {
     'api-key-user': Koa.config.security.itau.apiKeyUser
   };
   let params = {
-    rut: _ctx.params.rut,
-    dv: _ctx.params.dv,
-    proveedor_id: 'Koa.config.security.itau.providerId',
-    clave_id_generada: ''
-  };
+		rut: _ctx.params.rut,
+		dv: _ctx.params.dv, 
+		providerId: Koa.config.security.itau.providerId,
+		dynamicKeyId: _ctx.params.dynamicKeyId
+	};
   let data = await new Promise((resolve, reject) => {
-    webServices.post('payment', url, params, header, (err, result) => {
+    webServices.get('payment', url, params, header, (err, result) => {
         if (err) {
         err = getErrorByType(err.data.msg.meta);
         reject(err);
       } else {
         resolve({
-	status: result.response.CLV_ESTADO,
-	message: result.response.CLV_MENSAJE,
+	status: result.response.CLV_MENSAJE,
 	expiration: result.response.CLV_FCH_EXPIRA_CLAVE,
 	});
 	}

@@ -34,12 +34,12 @@ module.exports = {
 	
 	
 	
-	'/startSession/:rut/:dv/:proveedor_id/:clave_id_generada' : { 
-		method: 'GET', 
-		controller: 'ItauController',
-		action:	'startSession',
-		auth: null 
-	},
+	//'/startSession/:rut/:dv/:proveedor_id/:clave_id_generada' : { 
+	//	method: 'GET', 
+	//	controller: 'ItauController',
+	//	action:	'startSession',
+	//	auth: null 
+	
 	'validatecustomflow/:rut/:dv/:proveedor_id/:clave_id_generada/:clave_generada/:numero_pagina' : {
 		method: 'GET',
 		controller: 'ItauController',

@@ -63,19 +63,18 @@ async function checkDynamicKey(ctx) {
 		ctx.params.rut = userData.rut;
 		ctx.params.dv = userData.dv;
 		ctx.params.dynamicKeyId = userData.dynamicKey.id;
-		let dynamicKeyStatus = await itauService.checkDynamicKey(ctx); 
-		ctx.body = {
-			dynamicKeyStatus: dynamicKeyStatus
-		};
-	}
-	let	startSessionData = await itauService.startSession(ctx)
-	userData.startSession = startSessionData
-	userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData)
+		let checkDynamicKey = await itauService.checkDynamicKey(ctx); 
 
-	ctx.body = {
-		status: 'Start Session',
-		name: userData.name,
-		expireDate: dynamicKeyData.expiration
+		let	startSessionData = await itauService.startSession(ctx)
+		userData.session = startSessionData
+		userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData)
+	
+		ctx.body = {
+			status: 'Complete',
+			name: userData.name,
+			phone: userData.phoneNumber,
+			expireDate: dynamicKeyData.expiration
+		};
 	}
 }
 
