@@ -20,7 +20,7 @@ async function validateRut(_ctx) {
 			if (err) {
 				reject(err);
 			} else {
-				resolve( {
+				resolve({
           name: result.response.CLI_NOMBRE,
           rut: result.response.CLI_RUT,
           dv: result.response.CLI_DV,
@@ -56,7 +56,7 @@ async function generateDynamicKey(_ctx) {
 				resolve({
           key: result.response.CLV_CODIGO,
           id: result.response.CLV_ID,
-					status: result.response.CLV_ESTADO,
+					generationStatus: result.response.CLV_ESTADO,
 					attempts: +result.response.CLV_NUM_INTENTO,
           expiration: result.response.CLV_FCH_EXPIRA_CLAVE
         });
@@ -88,7 +88,7 @@ async function checkDynamicKey(_ctx) {
 				reject(err);
 			} else {
 				resolve({
-					status: result.response.CLV_MENSAJE
+					checkingStatus: result.response.CLV_MENSAJE
         });
 			}
 		}, _ctx.authSession);
@@ -98,38 +98,75 @@ async function checkDynamicKey(_ctx) {
 }
 
 async function startSession(_ctx) {
-  let url = Koa.config.path.itau.startSession;
-  let header = {
-    'api-key': Koa.config.security.itau.apiKey,
-    'api-key-user': Koa.config.security.itau.apiKeyUser
-  };
-  let params = {
+	let url = Koa.config.path.itau.startSession;
+	let header = {
+		'api-key': Koa.config.security.itau.apiKey,
+		'api-key-user': Koa.config.security.itau.apiKeyUser
+	};
+	let params = {
 		rut: _ctx.params.rut,
-		dv: _ctx.params.dv, 
+		dv: _ctx.params.dv,
 		providerId: Koa.config.security.itau.providerId,
 		dynamicKeyId: _ctx.params.dynamicKeyId
 	};
-  let data = await new Promise((resolve, reject) => {
-    webServices.get('payment', url, params, header, (err, result) => {
-        if (err) {
-        err = getErrorByType(err.data.msg.meta);
-        reject(err);
-      } else {
-        resolve({
-	status: result.response.CLV_MENSAJE,
-	expiration: result.response.CLV_FCH_EXPIRA_CLAVE,
+	let data = await new Promise((resolve, reject) => {
+		webServices.get('payment', url, params, header, (err, result) => {
+			if (err) {
+				err = getErrorByType(err.data.msg.meta);
+				reject(err);
+			} else {
+				resolve({
+					status: result.response.CLV_MENSAJE,
+					expiration: result.response.CLV_FCH_EXPIRA_CLAVE,
+				});
+			}
+		}, _ctx.authSession);
 	});
-	}
-    }, _ctx.authSession);
-  });
-return data;
+	return data;
+}
+
+
+async function validateSessionFlow(_ctx) {
+	let url = Koa.config.path.itau.validateSessionFlow;
+	let header = {
+		'api-key': Koa.config.security.itau.apiKey,
+		'api-key-user': Koa.config.security.itau.apiKeyUser
+	};
+	let params = {
+		rut: _ctx.params.rut,
+		dv: _ctx.params.dv, 
+		providerId: Koa.config.security.itau.providerId,
+		dynamicKeyId: _ctx.params.dynamicKeyId,		
+		dynamicKey: _ctx.params.dynamicKey,
+		pageNumber: 0 //Ni idea cual es el plan con este campo
+	};
+
+	let data = await new Promise((resolve, reject) => {
+		webServices.get('payment', url, params, header, (err, result) => {
+			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
+			if (err) {
+				reject(err);
+			} else {
+				resolve({
+          rut: result.response.CLI_RUT,
+          dv: result.response.CLI_DV,
+					phoneNumber: result.response.CLI_TELEFONO,
+					email: result.response.CLI_MAIL,
+					availablePoints: result.response.CLI_SALDO_DISPONIBLE
+        });
+			}
+		}, _ctx.authSession);
+	});
+
+	return data;
 }
 
 module.exports = {
 	validateRut: validateRut,
 	generateDynamicKey: generateDynamicKey,
   checkDynamicKey: checkDynamicKey,
-  startSession: startSession
+	startSession: startSession,
+	validateSessionFlow: validateSessionFlow
 };
 
 function getErrorByType(_meta) {
@@ -142,7 +179,7 @@ function getErrorByType(_meta) {
 	if (status === 150 || status === 151 || status === 152 || status === 153) {
 		status = 400;
 		description = _meta.message;
-		code = 'ActionError';
+		code = 'ActionError-' + _meta.code;
 	} else
 	if (status === 400 || status === 401 || status === 404 || status === 405 || status === 429) {
 		description = `Problema al procesar la peticion, Data: ${JSON.stringify(_meta)}`;

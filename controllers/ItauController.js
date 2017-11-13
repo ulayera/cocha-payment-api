@@ -4,7 +4,7 @@
 const userSessionModel = require('../models/redis/UserSession');
 const itauService = require('../services/ItauService');
 
-async function validateRut(ctx) {
+async function loadClient(ctx) {
 	if (true) { //ctx.params.paymentSessionCode es valido?
 		let userData = await itauService.validateRut(ctx);
 
@@ -28,7 +28,7 @@ async function validateRut(ctx) {
 
 async function sendDynamicKey (ctx) {
 	let userData = ctx.authSession.userSessionData;
-	if (userData.dynamicKey.attempts > 3) {
+	if (userData.dynamicKey.attempts > 2) {
 		throw {
 			status: 401,
 			message: {
@@ -43,60 +43,59 @@ async function sendDynamicKey (ctx) {
 		ctx.params.phoneNumber = userData.phoneNumber;
 		ctx.params.email = userData.email;
 		let dynamicKeyData = await itauService.generateDynamicKey(ctx);
-
-		// dynamicKeyData.attempts = userData.dynamicKey.attempts + 1 //Testing
 		userData.dynamicKey = dynamicKeyData;
-		userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
+		// dynamicKeyData.attempts = userData.dynamicKey.attempts + 1 //Testing
+		
+		await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 
 		ctx.body = {
 			status: 'Complete',
 			name: userData.name,
 			phone: userData.phoneNumber,
-			expireDate: dynamicKeyData.expiration 
+			keyExpireDate: dynamicKeyData.expiration 
 		}; 
 	}
 }
 
-async function checkDynamicKey(ctx) { 
+async function validateDynamicKey(ctx) { 
 	let userData = ctx.authSession.userSessionData;
 	if (true) { //ctx.params.paymentSessionCode es valido?
 		ctx.params.rut = userData.rut;
 		ctx.params.dv = userData.dv;
 		ctx.params.dynamicKeyId = userData.dynamicKey.id;
-		let checkDynamicKey = await itauService.checkDynamicKey(ctx); 
+		try {
+			let checkDynamicKeyData = await itauService.checkDynamicKey(ctx); 
+			userData.dynamicKey.checkingStatus = checkDynamicKeyData.checkingStatus
+		} catch(err) {
+			if ((err.code === 'ActionError-150' || err.code === 'ActionError-151') && userData.dynamicKey.attempts > 2) {
+				throw {
+					status: 401,
+					message: {
+						code: 'AttemptsError',
+						msg: 'Estimado Cliente, ha excedido el número de intentos'
+					}
+				};
+			} else {
+				throw err;
+			}
+		}
 
 		let	startSessionData = await itauService.startSession(ctx)
-		userData.session = startSessionData
-		userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData)
-	
+		userData.expiration = startSessionData.expiration;
+
+		let sessionFlowData  = await itauService.validateSessionFlow(ctx);
+		userData.totalPoints = sessionFlowData.availablePoints;
+		userData.availablePoints = sessionFlowData.availablePoints;
+
+		await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData, 'sessionOpen');
+
 		ctx.body = {
 			status: 'Complete',
-			name: userData.name,
-			phone: userData.phoneNumber,
-			expireDate: dynamicKeyData.expiration
+			points: userData.totalPoints
 		};
 	}
 }
 
-// async function startSession(ctx) {
-//	let params = {
-//		rut: ctx.params.rut, 
-//		dv: ctx.params.dv,
-//		proveedor_id: ctx.params.proveedor_id,
-//		clave_id_generada: ctx.params.clave_id_generada
-//	}
-// }
-
-async function validateCustomFlow(ctx) {
-	let params = {
-		rut: ctx.params.rut, 
-		dv: ctx.params.dv,
-		proveedor_id: ctx.params.proveedor_id,
-		clave_id_generada: ctx.params.clave_id_generada,
-		clave_generada: ctx.params.clave_generada,
-		numero_pagina: ctx.params.numero_pagina
-	}
-}
 
 async function preExchangeRequest(ctx) {
 	let params = {
@@ -143,11 +142,9 @@ async function cancelPreExchange(ctx) {
 }
 
 module.exports = {
-	validateRut: validateRut,
+	loadClient: loadClient,
 	sendDynamicKey:sendDynamicKey,
-	checkDynamicKey:checkDynamicKey, 
-	login:login,
-	validateCustomFlow:validateCustomFlow,
+	validateDynamicKey:validateDynamicKey,
 	preExchangeRequest:preExchangeRequest,
 	validateClientStatus:validateClientStatus,
 	performExchange: performExchange,

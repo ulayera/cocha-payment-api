@@ -2,16 +2,16 @@
 /* jshint strict: false, esversion: 6 */
 
 module.exports = {
-	'/validaterut/:paymentSessionCode/:rut/:dv': {
+	'/loadClient/:paymentSessionCode/:rut/:dv': {
 		method: 'GET',
 		controller: 'ItauController',
-		action: 'validateRut',
+		action: 'loadClient',
 		auth: {
 			strategy: 'intentionStrategy',
 			redirect: null
 		}
 	},
-	'/senddynamickey' : {
+	'/sendDynamicKey' : {
 		method:	'GET',
 		controller: 'ItauController',
 		action: 'sendDynamicKey', 
@@ -20,32 +20,16 @@ module.exports = {
 			redirect: null
 		} 
 	},
-	'/checkdynamickey/:dynamicKey' : {
+	'/validateDynamicKey/:dynamicKey' : {
 		method: 'GET',
 		controller: 'ItauController',
-		action: 'checkDynamicKey',
+		action: 'validateDynamicKey',
 		auth: {
 			strategy: 'paymentIntentionStrategy',
 			redirect: null
 		}
 	},
 	
-	
-	
-	
-	
-	//'/startSession/:rut/:dv/:proveedor_id/:clave_id_generada' : { 
-	//	method: 'GET', 
-	//	controller: 'ItauController',
-	//	action:	'startSession',
-	//	auth: null 
-	
-	'validatecustomflow/:rut/:dv/:proveedor_id/:clave_id_generada/:clave_generada/:numero_pagina' : {
-		method: 'GET',
-		controller: 'ItauController',
-		action: 'validatecustomflow',
-		auth: null 
-	},
 	'preexchangerequest/:rut/:dv/:proveedor_id/:clave_id_generado/:valor_producto/:cantidad_producto/:producto_id/:saldo_cliente/:precanje_id' : {
 		method: 'GET' ,
 		controller: 'ItauController',

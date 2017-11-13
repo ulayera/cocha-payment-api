@@ -6,7 +6,10 @@ module.exports = {
 			validateRut: 'http://itau20apicert.celmedia.cl/ValidaRutCanje',
 			generateDynamicKey: 'http://itau20apicert.celmedia.cl/GeneraClaveDinamica',
 			checkDynamicKey: 'http://itau20apicert.celmedia.cl/CompruebaClaveDinamica/:rut/:dv/:providerId/:dynamicKey/:dynamicKeyId',
-			startSession: 'http://itau20apicert.celmedia.cl/InicioSesion'
+			startSession: 'http://itau20apicert.celmedia.cl/InicioSesion/:rut/:dv/:providerId/:dynamicKeyId',
+			validateSessionFlow: 'http://itau20apicert.celmedia.cl/ValidarFlujoCliente/:rut/:dv/:providerId/:dynamicKeyId/:dynamicKey/:pageNumber',
+			requestPreExchange: 'http://itau20apicert.celmedia.cl/SolicitarPrecanje',
+			validateClient: 'http://itau20apicert.celmedia.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId'
 		}
 	},
 	security: {
