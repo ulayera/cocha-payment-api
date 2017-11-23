@@ -5,12 +5,12 @@ const userSessionModel = require('../models/redis/UserSession');
 
 module.exports = {
 	intentionStrategy: async(_headers, _params) => {
-		if (_headers.paymentIntention) {
+		if (_headers.paymentintention) {
 			return {
 				sessionData: {
 					trackId: _headers.trackid,
 					flowId: _headers.flowid,
-					paymentIntentionId: _headers.paymentIntention
+					paymentIntentionId: _headers.paymentintention
 				}
 			};
 		} else {
@@ -18,15 +18,15 @@ module.exports = {
 		}
 	},
 	paymentIntentionStrategy: async(_headers, _params) => {
-		if (_headers.paymentIntention) {
+		if (_headers.paymentintention) {
 			try {
-				let userSession = await userSessionModel.getUserSession(_headers.paymentIntention);
+				let userSession = await userSessionModel.getUserSession(_headers.paymentintention);
 				return {
 					type: userSession.status,
 					sessionData: {
 						trackId: _headers.trackid,
 						flowId: _headers.flowid,
-						paymentIntentionId: _headers.paymentIntention,
+						paymentIntentionId: _headers.paymentintention,
 						userSessionData: userSession.data
 					}
 				};

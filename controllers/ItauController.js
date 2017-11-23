@@ -1,12 +1,44 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
 
+const paymentSessionServices = require('cocha-external-services').paymentSession;
 const paymentServices = require('cocha-external-services').paymentServices;
 const userSessionModel = require('../models/redis/UserSession');
 const itauService = require('../services/ItauService');
 
+async function getPaymentSession(ctx) {
+	let paymentSessionData = await new Promise((resolve, reject) => {
+		paymentSessionServices.get(ctx.params.paymentSessionCode, (err, result) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(result);
+			}
+		});
+	});
+
+	ctx.body = {
+		status: 'Complete',
+		product: paymentSessionData.data.productName,
+		origin: paymentSessionData.data.origin || "Santiago, Chile",
+		destination: paymentSessionData.data.destination,
+		departure: paymentSessionData.data.departure,
+		returning: paymentSessionData.data.returning,
+		numberRooms: paymentSessionData.data.rooms
+	};
+}
+
 async function loadClient(ctx) {
-	if (true) { //ctx.params.paymentSessionCode es valido?
+	let paymentSessionValid = await new Promise((resolve, reject) => {
+		paymentSessionServices.isValidNewAttempt(ctx.params.paymentSessionCode, (ctx.params.rut + '-' + ctx.params.dv), ctx.authSession.paymentIntentionId, (err, result) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(result);
+			}
+		});
+	});
+	if (paymentSessionValid) {
 		let userData = await itauService.validateRut(ctx);
 
 		userData.paymentSession = ctx.params.paymentSessionCode;
@@ -38,72 +70,98 @@ async function sendDynamicKey (ctx) {
 			}
 		};
 	}
-	if (true) { //ctx.params.paymentSessionCode es valido?
-		ctx.params.rut = userData.rut;
-		ctx.params.dv = userData.dv;
-		ctx.params.phoneNumber = userData.phoneNumber;
-		ctx.params.email = userData.email;
-		let dynamicKeyData = await itauService.generateDynamicKey(ctx);
-		userData.dynamicKey = dynamicKeyData;
-		// dynamicKeyData.attempts = userData.dynamicKey.attempts + 1 //Testing
-		
-		await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 
-		ctx.body = {
-			status: 'Complete',
-			phone: userData.phoneNumber,
-			keyExpireDate: dynamicKeyData.expiration 
-		}; 
-	}
+	ctx.params.rut = userData.rut;
+	ctx.params.dv = userData.dv;
+	ctx.params.phoneNumber = userData.phoneNumber;
+	ctx.params.email = userData.email;
+	let dynamicKeyData = await itauService.generateDynamicKey(ctx);
+	userData.dynamicKey = dynamicKeyData;
+	// dynamicKeyData.attempts = userData.dynamicKey.attempts + 1 //Testing
+	
+	await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
+
+	ctx.body = {
+		status: 'Complete',
+		phone: userData.phoneNumber,
+		keyExpireDate: dynamicKeyData.expiration 
+	}; 
 }
 
 async function validateDynamicKey(ctx) { 
 	let userData = ctx.authSession.userSessionData;
-	if (true) { //ctx.params.paymentSessionCode es valido?
-		ctx.params.rut = userData.rut;
-		ctx.params.dv = userData.dv;
-		ctx.params.dynamicKeyId = userData.dynamicKey.id;
-		try {
-			let checkDynamicKeyData = await itauService.checkDynamicKey(ctx); 
-			userData.dynamicKey.checkingStatus = checkDynamicKeyData.checkingStatus
-		} catch(err) {
-			if ((err.code === 'ActionError-150' || err.code === 'ActionError-151') && userData.dynamicKey.attempts > 2) {
-				throw {
-					status: 401,
-					message: {
-						code: 'AttemptsError',
-						msg: 'Estimado Cliente, ha excedido el número de intentos'
-					}
-				};
-			} else {
-				throw err;
-			}
+	ctx.params.rut = userData.rut;
+	ctx.params.dv = userData.dv;
+	ctx.params.dynamicKeyId = userData.dynamicKey.id;
+	try {
+		let checkDynamicKeyData = await itauService.checkDynamicKey(ctx); 
+		userData.dynamicKey.checkingStatus = checkDynamicKeyData.checkingStatus
+	} catch(err) {
+		if ((err.code === 'ActionError-150' || err.code === 'ActionError-151') && userData.dynamicKey.attempts > 2) {
+			Koa.log.error(err);
+			throw {
+				status: 400,
+				message: {
+					code: 'AttemptsError',
+					msg: 'Estimado Cliente, ha excedido el número de intentos'
+				}
+			};
+		} else {
+			throw err;
 		}
-
-		let	startSessionData = await itauService.startSession(ctx)
-		userData.expiration = startSessionData.expiration;
-
-		let sessionFlowData  = await itauService.validateSessionFlow(ctx);
-		userData.totalPoints = sessionFlowData.availablePoints;
-		userData.availablePoints = sessionFlowData.availablePoints;
-
-		// Informacion que sale de la sesion de pago
-		userData.productName = 'Viaje de Prueba';
-		userData.pnr = 'HUOSDB';
-		userData.price = 850;
-
-		await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData, 'sessionOpen');
-
-		ctx.body = {
-			status: 'Complete',
-			points: userData.totalPoints
-		};
 	}
+
+	let	startSessionData = await itauService.startSession(ctx)
+	userData.expiration = startSessionData.expiration;
+
+	let sessionFlowData  = await itauService.validateSessionFlow(ctx);
+	userData.totalPoints = sessionFlowData.availablePoints;
+	userData.availablePoints = sessionFlowData.availablePoints;
+
+	let paymentSessionData = await new Promise((resolve, reject) => {
+		paymentSessionServices.get(userData.paymentSession, (err, result) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(result);
+			}
+		});
+	});
+	userData.cpnr = paymentSessionData.data.cpnr;
+	userData.producId = paymentSessionData.data.producId;
+	userData.productName = paymentSessionData.data.productName;
+	userData.price = paymentSessionData.data.price;
+
+	await new Promise((resolve, reject) => {
+		paymentSessionServices.addAttempt(userData.paymentSession, (userData.rut + '-' + userData.dv), ctx.authSession.paymentIntentionId, (err, result) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(result);
+			}
+		});
+	});
+
+	await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData, 'sessionOpen');
+
+	ctx.body = {
+		status: 'Complete',
+		points: userData.totalPoints
+	};
 }
 
 async function executePayment(ctx) {
 	let userData = ctx.authSession.userSessionData;
-	if (true) { //ctx.params.paymentSessionCode es valido?
+	let sessionValidData = await new Promise((resolve, reject) => {
+		paymentSessionServices.isValidAttempt(userData.paymentSession, ctx.authSession.paymentIntentionId, (err, result) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(result);
+			}
+		});
+	});
+	if (sessionValidData && ctx.authType === 'sessionOpen') {
 		ctx.params.rut = userData.rut;
 		ctx.params.dv = userData.dv;
 		ctx.params.dynamicKeyId = userData.dynamicKey.id;
@@ -114,28 +172,23 @@ async function executePayment(ctx) {
 		delete preExchangeData.spentPoints;
 		userData.preExchange = preExchangeData;
 
-		let TEMP;
-		if (userData.spentPoints === userData.price) {
+
+
+		if (userData.spentPoints === userData.price.usd) {
 			try {
 				userData.extraExchange = null;
 
-				let clientStatusData = await itauService.validateClient(ctx);
-				//Canjear puntos
+				await itauService.validateClient(ctx);
 
 				ctx.params.preExchangeId = userData.preExchange.id;
 				ctx.params.extraExchangeAmount = 0;
 				ctx.params.productName = userData.productName;
-				ctx.params.productId = userData.pnr;
+				ctx.params.productId = userData.producId;
 				let exchangeData = await itauService.requestExchange(ctx);
-
-				TEMP = {
-					statusClient: clientStatusData,
-					exchange: exchangeData
-				};
-
-				ctx.params.dynamicKey = userData.dynamicKey.key;//TEmporal
-				await itauService.validateSessionFlow(ctx); //TEmporal
+				
+				userData.postExchange = exchangeData;
 			} catch(err) {
+				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauService.cancelPreExchange(ctx);
 
@@ -144,8 +197,8 @@ async function executePayment(ctx) {
 		} else {
 			try {
 				let params = {
-					amount: userData.price - ctx.params.spendingPoint,
-					pnr: userData.pnr,
+					amount: userData.price.usd - userData.spentPoints,
+					code: userData.producId,
 					appName: 'PKG.COCHA.COM-DESA'
 				};
 				let paymentData = await new Promise((resolve, reject) => {
@@ -158,8 +211,8 @@ async function executePayment(ctx) {
 					}, ctx.authSession);
 				});
 				userData.extraExchange = paymentData;
-				//Mapear sesion de pago con token(o codigo de url?)
 			} catch(err) {
+				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauService.cancelPreExchange(ctx);
 
@@ -171,9 +224,16 @@ async function executePayment(ctx) {
 		
 		ctx.body = {
 			status: (userData.extraExchange)? 'Pending' : 'Complete',
-			temp: TEMP,
 			points: userData.availablePoints,
 			url: (userData.extraExchange)? userData.extraExchange.url : null
+		};
+	} else {
+		throw {
+			status: 401,
+			message: {
+				code: 'AuthError',
+				msg: 'Access denied'
+			}
 		};
 	}
 }
@@ -190,6 +250,7 @@ async function cancelPreExchange(ctx) {
 }
 
 module.exports = {
+	getPaymentSession: getPaymentSession,
 	loadClient: loadClient,
 	sendDynamicKey:sendDynamicKey,
 	validateDynamicKey:validateDynamicKey,

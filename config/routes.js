@@ -2,6 +2,15 @@
 /* jshint strict: false, esversion: 6 */
 
 module.exports = {
+	'/getPaymentSession/:paymentSessionCode': {
+		method: 'GET',
+		controller: 'ItauController',
+		action: 'getPaymentSession',
+		auth: {
+			strategy: 'intentionStrategy',
+			redirect: null
+		}
+	},
 	'/loadClient/:paymentSessionCode/:rut/:dv': {
 		method: 'GET',
 		controller: 'ItauController',
@@ -20,8 +29,8 @@ module.exports = {
 			redirect: null
 		} 
 	},
-	'/validateDynamicKey/:dynamicKey' : {
-		method: 'GET',
+	'/validateDynamicKey' : {
+		method: 'POST',
 		controller: 'ItauController',
 		action: 'validateDynamicKey',
 		auth: {

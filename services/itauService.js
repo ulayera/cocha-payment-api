@@ -143,7 +143,7 @@ async function validateSessionFlow(_ctx) {
 
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg) : err.data.msg) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
 			if (err) {
 				reject(err);
 			} else {

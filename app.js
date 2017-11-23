@@ -79,8 +79,6 @@ app.use(async (ctx, next) => {
 		flowId: ctx.request.header.flowid
 	};
 
-	ctx.request.header.paymentIntention = 'codigoprueba'; //PARA test
-
 	try {
 		await next();
 	} catch (err) {

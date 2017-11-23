@@ -8,7 +8,7 @@ function createUserSession(userSessionId, userSession, userSessionStatus) {
     status: userSessionStatus,
     data: userSession
   }
-	RedisService.setToRedis("userSession:" + userSessionId, sessionData, Koa.config.redisConf.expireDelta);
+	RedisService.setToRedis("userSession:" + userSessionId, sessionData, Koa.config.redisConf.expireUserSession);
 }
 
 function updateUserSession(userSessionId, userSession, userSessionStatus) {
@@ -19,7 +19,7 @@ function updateUserSession(userSessionId, userSession, userSessionStatus) {
 			} else {
 				result.status = userSessionStatus || result.status;
         result.data = userSession;
-        RedisService.setToRedis("userSession:" + userSessionId, result, Koa.config.redisConf.expireDelta);
+        RedisService.setToRedis("userSession:" + userSessionId, result, Koa.config.redisConf.expireUserSession);
 				resolve(result);
 			}
 		});
