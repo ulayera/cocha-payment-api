@@ -1,0 +1,42 @@
+# This is a sample build configuration for Javascript.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Dockerhub as your build environment
+image:
+  name: mhimmercocha/node
+  username: $USERNAME
+  password: $PASSWORD
+  email: $EMAIL
+
+pipelines: 
+  custom:
+    deploy-to-prod:
+      - step:
+        script:
+            - cocha-deployApi -w payment -e production -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
+  default:
+    - step:
+        script:
+          - echo "This step should never be executed"
+          - echo "This script runs on all branches that don't have any specific pipeline assigned in 'branches'."
+  branches:
+    '**':
+      - step:
+          script:
+            - echo "some previous step"
+    master:
+      - step:
+          caches:
+            - node
+          script:
+            - npm install
+            - cocha-deployApi -w payment -e development -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
+            - cocha-deployApi -w payment -e qa -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
+    hotfixes-*:
+      - step:
+          caches:
+            - node
+          script:
+            - npm install
+            - cocha-deployApi -w payment -e development -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
+            - cocha-deployApi -w payment -e qa -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
