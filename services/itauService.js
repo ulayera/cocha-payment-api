@@ -239,7 +239,7 @@ async function requestExchange(_ctx) {
 		puntos_utilizados: _ctx.params.spendingPoint,
 		copago: _ctx.params.extraExchangeAmount,
 		glosa_canje: _ctx.params.productName,
-		orden_compra: _ctx.params.productId,
+		orden_compra: _ctx.params.cpnr,
 	};
 
 	let data = await new Promise((resolve, reject) => {

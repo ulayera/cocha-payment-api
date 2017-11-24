@@ -2,6 +2,12 @@
 /* jshint strict: false, esversion: 6 */
 
 module.exports = {
+	'/setPayment' : {
+		method: 'POST',
+		controller: 'PaymentController',
+		action: 'createPayment',
+		auth: null
+	},
 	'/getPaymentSession/:paymentSessionCode': {
 		method: 'GET',
 		controller: 'ItauController',

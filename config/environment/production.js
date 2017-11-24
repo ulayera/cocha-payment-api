@@ -33,6 +33,8 @@ module.exports = {
 		port: parseInt(process.env.REDIS_PORT) || 6379,
 		db: parseInt(process.env.REDIS_DB) || 0,
 		expire: 60 * 60 * 24, // Seconds -> 24h
+		expireAttemptSession: 60 * 5, // Seconds -> 5m
+		expirePaymentSession: 60 * 60, // Seconds -> 1h
 		expireUserSession: 60 * 25 // Seconds -> 25m
 	},
 	mysqlConf: {

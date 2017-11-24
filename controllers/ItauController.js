@@ -3,24 +3,21 @@
 
 const paymentSessionServices = require('cocha-external-services').paymentSession;
 const paymentServices = require('cocha-external-services').paymentServices;
+
+
+
 const userSessionModel = require('../models/redis/UserSession');
+const sessionPaymentService = require('../services/SessionPaymentService');
 const itauService = require('../services/ItauService');
 
 async function getPaymentSession(ctx) {
-	let paymentSessionData = await new Promise((resolve, reject) => {
-		paymentSessionServices.get(ctx.params.paymentSessionCode, (err, result) => {
-			if (err) {
-				reject(err);
-			} else {
-				resolve(result);
-			}
-		});
-	});
+	let paymentSessionData = await sessionPaymentService.get(ctx); 
 
 	ctx.body = {
 		status: 'Complete',
 		product: paymentSessionData.data.productName,
-		origin: paymentSessionData.data.origin || "Santiago, Chile",
+		price: paymentSessionData.data.price,
+		origin: paymentSessionData.data.origin,
 		destination: paymentSessionData.data.destination,
 		departure: paymentSessionData.data.departure,
 		returning: paymentSessionData.data.returning,
@@ -29,16 +26,8 @@ async function getPaymentSession(ctx) {
 }
 
 async function loadClient(ctx) {
-	let paymentSessionValid = await new Promise((resolve, reject) => {
-		paymentSessionServices.isValidNewAttempt(ctx.params.paymentSessionCode, (ctx.params.rut + '-' + ctx.params.dv), ctx.authSession.paymentIntentionId, (err, result) => {
-			if (err) {
-				reject(err);
-			} else {
-				resolve(result);
-			}
-		});
-	});
-	if (paymentSessionValid) {
+	ctx.params.idDocument = ctx.params.rut + '' + ctx.params.dv
+	if (await sessionPaymentService.isValidNewAttempt(ctx)) {
 		let userData = await itauService.validateRut(ctx);
 
 		userData.paymentSession = ctx.params.paymentSessionCode;
@@ -118,30 +107,15 @@ async function validateDynamicKey(ctx) {
 	userData.totalPoints = sessionFlowData.availablePoints;
 	userData.availablePoints = sessionFlowData.availablePoints;
 
-	let paymentSessionData = await new Promise((resolve, reject) => {
-		paymentSessionServices.get(userData.paymentSession, (err, result) => {
-			if (err) {
-				reject(err);
-			} else {
-				resolve(result);
-			}
-		});
-	});
+	ctx.params.paymentSessionCode = userData.paymentSession;
+	let paymentSessionData = await sessionPaymentService.get(ctx); 
+	userData.cochaCode = paymentSessionData.data.cochaCode;
 	userData.cpnr = paymentSessionData.data.cpnr;
-	userData.producId = paymentSessionData.data.producId;
 	userData.productName = paymentSessionData.data.productName;
 	userData.price = paymentSessionData.data.price;
 
-	await new Promise((resolve, reject) => {
-		paymentSessionServices.addAttempt(userData.paymentSession, (userData.rut + '-' + userData.dv), ctx.authSession.paymentIntentionId, (err, result) => {
-			if (err) {
-				reject(err);
-			} else {
-				resolve(result);
-			}
-		});
-	});
-
+	ctx.params.idDocument = userData.rut + '' + userData.dv;
+	await sessionPaymentService.addAttempt(ctx); 
 	await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData, 'sessionOpen');
 
 	ctx.body = {
@@ -152,16 +126,19 @@ async function validateDynamicKey(ctx) {
 
 async function executePayment(ctx) {
 	let userData = ctx.authSession.userSessionData;
-	let sessionValidData = await new Promise((resolve, reject) => {
-		paymentSessionServices.isValidAttempt(userData.paymentSession, ctx.authSession.paymentIntentionId, (err, result) => {
-			if (err) {
-				reject(err);
-			} else {
-				resolve(result);
-			}
-		});
-	});
-	if (sessionValidData && ctx.authType === 'sessionOpen') {
+	ctx.params.paymentSessionCode = userData.paymentSession;
+	if (await sessionPaymentService.isValidAttempt(ctx) && ctx.authType === 'sessionOpen') {
+		if (!_.isNumber(ctx.params.spendingPoint)) {
+			throw {
+				status: 400,
+				message: {
+					code: 'ParamsError',
+					msg: "Parameter 'spendingPoint' is invalid: " + ctx.params.spendingPoint
+				}
+			};
+		} 
+		ctx.params.spendingPoint = (ctx.params.spendingPoint > userData.price)? userData.price : ctx.params.spendingPoint;
+
 		ctx.params.rut = userData.rut;
 		ctx.params.dv = userData.dv;
 		ctx.params.dynamicKeyId = userData.dynamicKey.id;
@@ -171,10 +148,8 @@ async function executePayment(ctx) {
 		delete preExchangeData.availablePoints;
 		delete preExchangeData.spentPoints;
 		userData.preExchange = preExchangeData;
-
-
-
-		if (userData.spentPoints === userData.price.usd) {
+		
+		if (userData.spentPoints === userData.price) {
 			try {
 				userData.extraExchange = null;
 
@@ -183,7 +158,7 @@ async function executePayment(ctx) {
 				ctx.params.preExchangeId = userData.preExchange.id;
 				ctx.params.extraExchangeAmount = 0;
 				ctx.params.productName = userData.productName;
-				ctx.params.productId = userData.producId;
+				ctx.params.cpnr = userData.cpnr;
 				let exchangeData = await itauService.requestExchange(ctx);
 				
 				userData.postExchange = exchangeData;
@@ -197,9 +172,9 @@ async function executePayment(ctx) {
 		} else {
 			try {
 				let params = {
-					amount: userData.price.usd - userData.spentPoints,
-					code: userData.producId,
-					appName: 'PKG.COCHA.COM-DESA'
+					amount: userData.price - userData.spentPoints,
+					code: userData.cpnr,
+					appName: 'PKG.COCHA.COM-DESA' //Definir en los configs
 				};
 				let paymentData = await new Promise((resolve, reject) => {
 					paymentServices.getPaymentData(params, (err, result) => {

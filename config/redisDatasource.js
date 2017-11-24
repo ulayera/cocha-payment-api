@@ -12,12 +12,28 @@ Redis.on("error", function(err) {
 	Koa.log.error('[ERROR][RedisModel][onError] - ' + err);
 });
 
-function setToRedis(key, value, expire) {
+function setToRedis(key, value, expire, callback) {
 	var expTime = expire || Koa.config.redisConf.expire;
-	
-	Redis.set(key, JSON.stringify(value));
-	if(expTime && (!expire || expire!=-1)){
-		Redis.expire(key, expTime);
+	if(callback){
+		Redis.set(key, JSON.stringify(value), function(err, reply) {
+			if (err) {
+				callback({
+					CODE: 'RD-500',
+					KEY: key,
+					DETAIL: err
+				}, null);
+			} else {
+				if(expTime && (!expire || expire!=-1)){
+					Redis.expire(key, expTime);
+				}
+				callback(null, {KEY: key});
+			}
+		});
+	} else {
+		Redis.set(key, JSON.stringify(value));
+		if(expTime && (!expire || expire!=-1)){
+			Redis.expire(key, expTime);
+		}
 	}
 }
 
