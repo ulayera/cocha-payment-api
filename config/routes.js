@@ -58,6 +58,16 @@ module.exports = {
 		controller: 'ErpController',
 		action: 'assignTransaction'
 	},
+	'/validatePayment' : { 
+		method: 'GET',
+		controller: 'ItauController',
+		action: 'validatePayment',
+		auth:  {
+			strategy: 'paymentIntentionStrategy',
+			redirect: null
+		}
+	},
+	
 	'cancelpreexchange/:rut/:dv/:proveedor_id/:precanje_id/:producto_id' : {
 		method: 'GET',
 		controller: 'ItauController',

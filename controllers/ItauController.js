@@ -165,6 +165,8 @@ async function executePayment(ctx) {
 
 				await itauService.validateClient(ctx);
 
+
+
 				ctx.params.preExchangeId = userData.preExchange.id;
 				ctx.params.extraExchangeAmount = 0;
 				ctx.params.productName = userData.productName;
@@ -232,6 +234,35 @@ async function executePayment(ctx) {
 	}
 }
 
+async function validatePayment(ctx) {
+		let userData = ctx.authSession.userSessionData;
+		try { 
+				let params = { 
+					token: 'd2de7f089d2f736a8c2345113add65a5'
+			};
+
+				let paymentData = await new Promise((resolve, reject) => {
+					paymentServices.checkPayment(params, (err, result) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(result);
+						}
+					}, ctx.authSession);
+				});
+				userData.extraExchange = paymentData;
+			} catch(err) { 
+				ctx.params.preExchangeId = userData.preExchange.id;
+				let canceledPreExchangeData = await itauService.cancelPreExchange(ctx);
+				throw err; 
+			}
+		
+			//await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
+
+		ctx.body = { 
+			status: 'COMPLETE'
+	};
+}
 
 async function cancelPreExchange(ctx) {
 	let params = {
@@ -249,5 +280,6 @@ module.exports = {
 	sendDynamicKey:sendDynamicKey,
 	validateDynamicKey:validateDynamicKey,
 	executePayment:executePayment,
-	cancelPreExchange:cancelPreExchange
+	cancelPreExchange:cancelPreExchange,
+	validatePayment:validatePayment
 };
