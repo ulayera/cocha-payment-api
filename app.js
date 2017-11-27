@@ -21,11 +21,19 @@ let app = new (require('koa'))();
 let router = new (require('koa-router'))();
 let bodyParser = require('koa-bodyparser')();
 
+
 let cronJob = require('cron').CronJob;
 
 let redisService = require('./config/redisDatasource');
 let mysqlService = require('./config/mysqlDatasource');
+
+
 mysqlService.start(); //Init MySQL database access // Buscar una mejor manera
+
+/**/
+let mongoService = require('./config/mongooseDatasource');
+var schema = require('./models/mongo/schemas/payment');
+/**/
 
 if (Koa.config.crons.enabled) {
 	_.forEach(crons, (cron, key) => {			
@@ -71,6 +79,17 @@ _.forEach(routes, (route, key) => {
 });
 
 app.use(bodyParser);
+app.use(mongoService(mongoService.config));
+
+
+app.use(async (ctx, next) => {
+    var Payment = mongoService.mongoose.model('payment', schema);
+    var payment = new Payment({
+        name: 'jackong',
+        age: 17
+    })
+    var doc = await payment.save()
+})
 
 app.use(async (ctx, next) => {
 	ctx.params = _.assign(ctx.params, ctx.request.query, ctx.request.body);
