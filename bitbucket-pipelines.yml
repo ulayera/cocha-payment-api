@@ -12,8 +12,8 @@ pipelines:
   custom:
     deploy-to-prod:
       - step:
-        script:
-            - cocha-deployApi -w payment -e production -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
+          script:
+            - cocha-deployApi -a payment -e production -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
   default:
     - step:
         script:
@@ -30,13 +30,11 @@ pipelines:
             - node
           script:
             - npm install
-            - cocha-deployApi -w payment -e development -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
-            - cocha-deployApi -w payment -e qa -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
+            - cocha-deployApi -a payment -e development -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
+            - cocha-deployApi -a payment -e qa -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
     hotfixes-*:
       - step:
           caches:
             - node
           script:
             - npm install
-            - cocha-deployApi -w payment -e development -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
-            - cocha-deployApi -w payment -e qa -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
