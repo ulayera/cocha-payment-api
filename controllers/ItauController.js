@@ -236,11 +236,48 @@ async function executePayment(ctx) {
 
 async function validatePayment(ctx) {
 		let userData = ctx.authSession.userSessionData;
+		let sessionValidData = await new Promise((resolve, reject) => {
+			paymentSessionServices.isValidAttempt(userData.paymentSession, ctx.authSession.paymentIntentionId, (err, result) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(result);
+				}
+			});
+		});
+			try {
+
+			await itauService.validateClient(ctx);
+
+			ctx.params.preExchangeId = userData.preExchange.id;
+			ctx.params.productName = userData.productName;
+			ctx.params.productId = userData.producId;
+			
+		} catch(err) {
+			Koa.log.error(err);
+			ctx.params.preExchangeId = userData.preExchange.id;
+			let canceledPreExchangeData = await itauService.cancelPreExchange(ctx);
+
+			throw err;
+		}
+
+		
+		if (token === null && status != 0) { 
+			await itauService.cancelPreExchange(ctx);
+			}	
+			
+			if (token != null ){
+	
+			
 		try { 
 				let params = { 
-					token: 'd2de7f089d2f736a8c2345113add65a5'
-			};
+					token: 'd2de7f089d2f736a8c2345113add65a5',
+					message: '',
+					tokenWebPay: '',
+					url: '',
+					pnr: userData.pnr
 
+			};
 				let paymentData = await new Promise((resolve, reject) => {
 					paymentServices.checkPayment(params, (err, result) => {
 						if (err) {
@@ -251,18 +288,23 @@ async function validatePayment(ctx) {
 					}, ctx.authSession);
 				});
 				userData.extraExchange = paymentData;
+				let exchangeData = await itauService.requestExchange(ctx);
+				
+				userData.postExchange = exchangeData;
+				
 			} catch(err) { 
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauService.cancelPreExchange(ctx);
 				throw err; 
 			}
-		
+		}
+	}
 			//await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 
 		ctx.body = { 
 			status: 'COMPLETE'
 	};
-}
+
 
 async function cancelPreExchange(ctx) {
 	let params = {
