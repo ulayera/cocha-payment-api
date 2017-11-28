@@ -5,7 +5,15 @@ var schema = new mongoose.Schema({
     cpnr: {type: String},
     xpnr: {type: String},
     email: {type: String},
-    status: [{id:String,transaction_type:String,currency:String,status:String,date:Date,amount:Number,info:mongoose.Schema.Types.Mixed}],
+    status: [{
+    	id:String
+       ,transaction_type:String
+       ,currency:String
+       ,status:String
+       ,date:Date
+       ,amount:Number
+       ,info:mongoose.Schema.Types.Mixed
+    }],
     business:{type: String},
     total:{type: Number},
     ttl:{type: Number}
