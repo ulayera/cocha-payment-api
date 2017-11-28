@@ -10,8 +10,10 @@ const userSessionModel = require('../models/redis/UserSession');
 const sessionPaymentService = require('../services/SessionPaymentService');
 const itauService = require('../services/ItauService');
 
+
 async function getPaymentSession(ctx) {
 	let paymentSessionData = await sessionPaymentService.get(ctx); 
+
 
 	ctx.body = {
 		status: 'Complete',

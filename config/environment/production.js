@@ -44,5 +44,12 @@ module.exports = {
 		username: process.env.MYSQL_USER || 'search-digital',
 		password: process.env.MYSQL_PASS || 'c0ch4.D1g1t4l',
 		// insecureAuth: true
+	},
+	mongoConf: {
+		host: process.env.MONGODB_HOST || 'localhost',
+		port: parseInt(process.env.MONGODB_PORT) || 27017,
+		database: process.env.MONGODB_DB || 'local',
+		username: process.env.MONGODB_USER || null,
+		password: process.env.MONGODB_PASS || null
 	}
 };

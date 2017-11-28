@@ -21,11 +21,16 @@ let app = new (require('koa'))();
 let router = new (require('koa-router'))();
 let bodyParser = require('koa-bodyparser')();
 
+
 let cronJob = require('cron').CronJob;
 
 let redisService = require('./config/redisDatasource');
 let mysqlService = require('./config/mysqlDatasource');
 mysqlService.start(); //Init MySQL database access // Buscar una mejor manera
+
+let mongoService = require('./config/mongoDatasource');
+mongoService.start();
+
 
 if (Koa.config.crons.enabled) {
 	_.forEach(crons, (cron, key) => {			

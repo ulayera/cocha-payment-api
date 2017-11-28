@@ -28,7 +28,6 @@ async function assignTransaction(ctx){
 					 code:"02"
 					,msg:"NEGOCIO YA ASIGNADO"
 					,business:err.business || ''
-					,detail:detail
 				}
 			};
 		} else {
@@ -46,4 +45,5 @@ async function assignTransaction(ctx){
 
 module.exports = {
 	assignTransaction: assignTransaction
+	burnPoints: burnPoints
 };
