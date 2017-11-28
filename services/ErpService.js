@@ -25,13 +25,12 @@ function paymentAnalysis(_data){
 }
 
 async function assignTransaction(_cpnr,_businessNumber) {
-
     //safety checks
 	let paymentData = await Payment.getByBusinessCpnr(_businessNumber,_cpnr);
 	if(paymentData.business){
 		throw {
 			code:"BusinessAlreadyAssigned",
-			msg:paymentData.business
+			business:paymentData.business
 		};
 	}
 	let payments = paymentAnalysis(paymentData);
@@ -53,29 +52,6 @@ async function assignTransaction(_cpnr,_businessNumber) {
 			records:payments.records
 		};
 	}
-	//testing examples
-	//return await Payment.getByBusinessCpnr("657-ASD-1","H01234201711");
-	//return await Payment.get('5a1c747615fdc382f43e2f5f');
- 	//await addStatus("5a1db7ec3fe87624a060cd0a","PAGADO","ITAU","CLP","234252354234","11000", {rut:"15309961-8"});
-	//search for business number + cpnr combination
-	/*
-    var payment = new Payment.model({
-        _id: new mongoose.Types.ObjectId,
-        //_id: '5a1c7eea9a034b7618feab54',
-	    cpnr: "H01234201711",
-	    xpnr: "H01234",
-	    email: "jmpaz@cocha.com",
-	    status: [{id:"234252354234",transaction_type:"ITAU",currency:"CLP",status:"PENDIENTE",date:moment().toDate(),amount:11000,info:{rut:"15309961-8"}}],
-	    business:"657-ASD-1",
-	    total:13500,
-	    ttl:10000
-    });
-    var doc = await Payment.save(payment);
-	throw {};
-	*/
-
-
-
 }
 
 async function addStatus(_sessionId,_status,_type,_currency,_paymentId, _amount, _info){
@@ -101,6 +77,6 @@ function parsePaymentsRecords(_records) {
 }
 
 module.exports = {
-	burnPoints:burnPoints,
+	assignTransaction:assignTransaction,
 	addStatus:addStatus
 }   

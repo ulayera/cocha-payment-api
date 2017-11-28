@@ -53,8 +53,11 @@ module.exports = {
 			redirect: null
 		} 
 	},
-
-	
+	'/quemarPuntos' : {
+		method: 'POST' ,
+		controller: 'ErpController',
+		action: 'assignTransaction'
+	},
 	'cancelpreexchange/:rut/:dv/:proveedor_id/:precanje_id/:producto_id' : {
 		method: 'GET',
 		controller: 'ItauController',
