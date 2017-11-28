@@ -72,6 +72,11 @@ module.exports = {
 		method: 'GET',
 		controller: 'SmartController',
 		action: 'sendPayment'
+	},
+	'/quemarPuntos':{
+		method: 'POST',
+		controller: 'ErpController',
+		action: 'assignTransaction'
 	}
 
 };
