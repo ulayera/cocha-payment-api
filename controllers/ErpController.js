@@ -45,5 +45,4 @@ async function assignTransaction(ctx){
 
 module.exports = {
 	assignTransaction: assignTransaction
-	burnPoints: burnPoints
 };
