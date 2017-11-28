@@ -34,7 +34,6 @@ async function assignTransaction(_cpnr,_businessNumber) {
 		};
 	}
 	let payments = paymentAnalysis(paymentData);
-
 	if(payments.isConsistent){
 		if(payments.isPaid){
 			paymentData.business = _businessNumber;
@@ -53,7 +52,6 @@ async function assignTransaction(_cpnr,_businessNumber) {
 			records:payments.records
 		};
 	}
-
 }
 
 async function addStatus(_sessionId,_status,_type,_currency,_paymentId, _amount, _info){
