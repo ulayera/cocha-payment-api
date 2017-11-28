@@ -32,6 +32,9 @@ async function createPayment(ctx) {
   if (!_.isNumber(ctx.params.totalRooms)) {
     errors.push("Parameter 'totalRooms' is invalid: " + ctx.params.totalRooms);
   }
+  if (!_.has(ctx.params, 'adult') || !_.has(ctx.params, 'child') || !_.has(ctx.params, 'infant') || !_.isNumber(ctx.params.adult + ctx.params.child + ctx.params.infant)) {
+    errors.push("Parameters 'adult', 'child' or 'infant' are invalids: " + ctx.params.adult + ", " + ctx.params.child + ", " + ctx.params.infant);
+  }
   if (errors.length > 0) {
     throw {
       status: 400,

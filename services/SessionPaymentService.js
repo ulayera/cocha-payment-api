@@ -17,7 +17,10 @@ async function create(_ctx) {
       departure: _ctx.params.departureDate,
       returning: _ctx.params.returningDate,
       contact: _ctx.params.contactEmail,
-      rooms: _ctx.params.totalRooms
+      rooms: _ctx.params.totalRooms,
+      adults: _ctx.params.adult,
+      children: _ctx.params.child,
+      infants: _ctx.params.infant
     },
 		attempts: {}
 	};

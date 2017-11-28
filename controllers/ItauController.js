@@ -21,7 +21,11 @@ async function getPaymentSession(ctx) {
 		destination: paymentSessionData.data.destination,
 		departure: paymentSessionData.data.departure,
 		returning: paymentSessionData.data.returning,
-		numberRooms: paymentSessionData.data.rooms
+		numberRooms: paymentSessionData.data.rooms,
+		adults: paymentSessionData.data.adults,
+		children: paymentSessionData.data.children,
+		infants: paymentSessionData.data.infants,
+
 	};
 }
 
