@@ -12,8 +12,8 @@ var schema = new mongoose.Schema({
 });
 
 
-async function getByBusinessCpnr(_businessNumber,_cpnr){
-	return await this.get({'business':_businessNumber,'cpnr':_cpnr});
+async function getByCpnr(_cpnr){
+	return await this.get({'cpnr':_cpnr});
 }
 
 async function get(_id){
@@ -69,7 +69,7 @@ async function save(_object){
 
 module.exports = {
 	model:mongoose.model('Payment', schema, 'payment'),
-	getByBusinessCpnr:getByBusinessCpnr,
+	getByCpnr:getByCpnr,
 	get:get,	
 	save:save
 }
