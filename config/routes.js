@@ -12,10 +12,11 @@ module.exports = {
 		method: 'GET',
 		controller: 'ItauController',
 		action: 'getPaymentSession',
+		/*
 		auth: {
 			strategy: 'intentionStrategy',
 			redirect: null
-		}
+		}*/
 	},
 	'/loadClient/:paymentSessionCode/:rut/:dv': {
 		method: 'GET',
@@ -66,6 +67,12 @@ module.exports = {
 			strategy: 'paymentIntentionStrategy',
 			redirect: null
 		} 
+	},
+	'/sendPaymentSmart':{
+		method: 'GET',
+		controller: 'SmartController',
+		action: 'sendPayment'
 	}
+
 };
 

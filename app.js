@@ -26,13 +26,36 @@ let cronJob = require('cron').CronJob;
 
 let redisService = require('./config/redisDatasource');
 let mysqlService = require('./config/mysqlDatasource');
-
-
 mysqlService.start(); //Init MySQL database access // Buscar una mejor manera
 
+let mongoService = require('./config/mongoDatasource');
+mongoService.start();
+
 /**/
-let mongoService = require('./config/mongooseDatasource');
-var schema = require('./models/mongo/schemas/payment');
+//let mongoService = require('./config/mongooseDatasource');
+/*
+let mongoose = require('koa-mongoose');
+let mongooseConfig = {
+    username: (Koa.config.mongoConf.username ? Koa.config.mongoConf.username : ''),
+    password: (Koa.config.mongoConf.password ? Koa.config.mongoConf.username : ''),
+    host: Koa.config.mongoConf.host,
+    port: Koa.config.mongoConf.port,
+    database: Koa.config.mongoConf.database,
+    //schemas: './models/mongo/schemas',
+    db: {
+        native_parser: true
+    },
+    server: {
+       poolSize: 5
+    }
+};*/
+//app.use(mongoose(mongooseConfig));
+//let Payment = require('./models/mongo/schemas/payment');
+//let schema = require('./models/mongo/schemas/payment');
+//const Payment = new mongoose.Schema(schema);
+/**/
+
+
 /**/
 
 if (Koa.config.crons.enabled) {
@@ -79,17 +102,6 @@ _.forEach(routes, (route, key) => {
 });
 
 app.use(bodyParser);
-app.use(mongoService(mongoService.config));
-
-
-app.use(async (ctx, next) => {
-    var Payment = mongoService.mongoose.model('payment', schema);
-    var payment = new Payment({
-        name: 'jackong',
-        age: 17
-    })
-    var doc = await payment.save()
-})
 
 app.use(async (ctx, next) => {
 	ctx.params = _.assign(ctx.params, ctx.request.query, ctx.request.body);
