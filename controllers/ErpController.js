@@ -6,7 +6,7 @@ const erpService = require('../services/ErpService');
 
 async function assignTransaction(ctx){
 	try{
-		let result = await erpService.assignTransaction(ctx.params.cpnr,ctx.params.negocio);
+		let result = await erpService.assignTransaction(ctx.params.sessionToken,ctx.params.cpnr,ctx.params.negocio);
 		ctx.status = 200;
 		ctx.body = result;
 	} catch (err) {

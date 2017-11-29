@@ -24,9 +24,9 @@ function paymentAnalysis(_data){
 	};
 }
 
-async function assignTransaction(_cpnr,_businessNumber) {
+async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
     //safety checks
-	let paymentData = await Payment.getByCpnr(_cpnr);
+	let paymentData = await Payment.getBySessionCpnr(_sessionToken,_cpnr);
 	if(paymentData.business){
 		throw {
 			code:"BusinessAlreadyAssigned",
