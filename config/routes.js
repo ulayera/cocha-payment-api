@@ -53,7 +53,7 @@ module.exports = {
 			redirect: null
 		} 
 	},
-	'/quemarPuntos' : {
+	'/redeem' : {
 		method: 'POST' ,
 		controller: 'ErpController',
 		action: 'assignTransaction'
@@ -71,11 +71,6 @@ module.exports = {
 		method: 'GET',
 		controller: 'SmartController',
 		action: 'sendPayment'
-	},
-	'/quemarPuntos':{
-		method: 'POST',
-		controller: 'ErpController',
-		action: 'assignTransaction'
 	}
 
 };
