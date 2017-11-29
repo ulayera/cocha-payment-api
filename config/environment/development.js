@@ -49,7 +49,7 @@ module.exports = {
 		host: process.env.MONGODB_HOST || 'mongo-db-desa.cocha.com',
 		port: parseInt(process.env.MONGODB_PORT) || 27017,
 		database: process.env.MONGODB_DB || 'local',
-		username: process.env.MONGODB_USER || 'dba',
-		password: process.env.MONGODB_PASS || 'yWigai9SQTlPE4ZpYFOctPROhtaeZHz1'
+		username: process.env.MONGODB_USER || 'payment',
+		password: process.env.MONGODB_PASS || 'payment1234'
 	}
 };
