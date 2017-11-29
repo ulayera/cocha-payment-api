@@ -1,6 +1,5 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
-var mongoose = require('mongoose');
 const Payment = require('../models/mongo/schemas/payment');
 
 function paymentAnalysis(_data){

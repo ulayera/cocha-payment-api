@@ -50,6 +50,7 @@ module.exports = {
 		port: parseInt(process.env.MONGODB_PORT) || 27017,
 		database: process.env.MONGODB_DB || 'local',
 		username: process.env.MONGODB_USER || null,
-		password: process.env.MONGODB_PASS || null
+		password: process.env.MONGODB_PASS || null,
+		ttlCron:10000		
 	}
 };

@@ -9,6 +9,7 @@ const paymentServices = require('cocha-external-services').paymentServices;
 const userSessionModel = require('../models/redis/UserSession');
 const sessionPaymentService = require('../services/SessionPaymentService');
 const itauService = require('../services/ItauService');
+const Payment = require('../models/mongo/schemas/payment');
 
 
 async function getPaymentSession(ctx) {
@@ -149,6 +150,9 @@ async function executePayment(ctx) {
 		ctx.params.dv = userData.dv;
 		ctx.params.dynamicKeyId = userData.dynamicKey.id;
 		let preExchangeData = await itauService.requestPreExchange(ctx);
+		
+		await ErpService.addStatus(ctx.params.paymentSessionCode,"PENDIENTE","ITAU","CLP",preExchangeData.id,preExchangeData.spentPoints,{rut:ctx.params.rut});
+
 		userData.availablePoints = preExchangeData.availablePoints;
 		userData.spentPoints = preExchangeData.spentPoints;
 		delete preExchangeData.availablePoints;
@@ -166,12 +170,16 @@ async function executePayment(ctx) {
 				ctx.params.productName = userData.productName;
 				ctx.params.cpnr = userData.cpnr;
 				let exchangeData = await itauService.requestExchange(ctx);
+
+				await ErpService.addStatus(ctx.params.paymentSessionCode,"PAGADO","ITAU","CLP",preExchangeData.id,preExchangeData.spentPoints,{rut:ctx.params.rut});
 				
 				userData.postExchange = exchangeData;
 			} catch(err) {
 				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauService.cancelPreExchange(ctx);
+
+				await ErpService.addStatus(ctx.params.paymentSessionCode,"FALLO","ITAU","CLP",preExchangeData.id,preExchangeData.spentPoints,{rut:ctx.params.rut});
 
 				throw err;
 			}
@@ -192,11 +200,16 @@ async function executePayment(ctx) {
 					}, ctx.authSession);
 				});
 				userData.extraExchange = paymentData;
+
+				await ErpService.addStatus(ctx.params.paymentSessionCode,"PENDIENTE","WEBPAY","CLP",paymentData.tokenWebPay,params.amount,{rut:ctx.params.rut});				
+
 			} catch(err) {
 				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauService.cancelPreExchange(ctx);
-
+				
+				await ErpService.addStatus(ctx.params.paymentSessionCode,"FALLO","ITAU","CLP",preExchangeData.id,userData.spentPoints,{rut:ctx.params.rut});
+				
 				throw err;
 			}
 		}
