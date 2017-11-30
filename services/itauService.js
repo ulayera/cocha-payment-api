@@ -1,7 +1,7 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
 
-const webServices = require('cocha-external-services').webServices;
+const webServices 	= require('cocha-external-services').webServices;
 
 async function validateRut(_ctx) {
 	let url = Koa.config.path.itau.validateRut;
@@ -183,12 +183,14 @@ async function requestPreExchange(_ctx) {
 			if (err) {
 				reject(err);
 			} else {
+
+
 				resolve({
 					status: result.response.PRECANJE_MENSAJE,
 					id: result.response.PRECANJE_ID,
 					availablePoints: +result.response.PRECANJE_SALDO_CLIENTE,
 					spentPoints: +result.response.PRECANJE_MONTO
-        });
+        		});
 			}
 		}, _ctx.authSession);
 	});

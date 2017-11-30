@@ -3,6 +3,7 @@
 
 const paymentSessionModel = require('../models/redis/PaymentSession');
 const attemptSessionModel = require('../models/redis/AttemptSession');
+const Payment = require('../models/mongo/schemas/payment');
 
 async function create(_ctx) {
   let now = new Date();
@@ -24,8 +25,17 @@ async function create(_ctx) {
     },
 		attempts: {}
 	};
-  let sessionId = 'algotemporal'; //Generado por MongoDB
 
+  var payment = new Payment.model({
+    cpnr:session.data.cpnr,
+    xpnr:session.data.cochaCode,
+    total:session.data.price,
+    ttl:Koa.config.mongoConf.ttlCron,
+    email:session.data.contact
+  });
+  payment = await Payment.save(payment);
+  let sessionId = payment._id;
+  
   await paymentSessionModel.setPaymentSession(sessionId, session);
   return sessionId; 
 }
