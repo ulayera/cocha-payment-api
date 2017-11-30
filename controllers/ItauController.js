@@ -201,7 +201,7 @@ async function executePayment(ctx) {
 				});
 				userData.extraExchange = paymentData;
 
-				await ErpService.addStatus(ctx.params.paymentSessionCode,"PENDIENTE","WEBPAY","CLP",paymentData.tokenWebPay,params.amount,{rut:ctx.params.rut});				
+				await ErpService.addStatus(ctx.params.paymentSessionCode,"PENDIENTE","WEBPAY","CLP",paymentData.tokenWebPay,params.amount,{rut:ctx.params.rut,token:paymentData.token});				
 
 			} catch(err) {
 				Koa.log.error(err);

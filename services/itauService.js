@@ -2,7 +2,6 @@
 /* jshint strict: false, esversion: 6 */
 
 const webServices 	= require('cocha-external-services').webServices;
-const Payment 		= require('../models/mongo/schemas/payment');
 
 async function validateRut(_ctx) {
 	let url = Koa.config.path.itau.validateRut;
