@@ -53,11 +53,6 @@ module.exports = {
 			redirect: null
 		} 
 	},
-	'/redeem' : {
-		method: 'POST' ,
-		controller: 'ErpController',
-		action: 'assignTransaction'
-	},
 	'/validatePayment' : { 
 		method: 'GET',
 		controller: 'ItauController',
@@ -67,7 +62,6 @@ module.exports = {
 			redirect: null
 		}
 	},
-	
 	'cancelpreexchange/:rut/:dv/:proveedor_id/:precanje_id/:producto_id' : {
 		method: 'GET',
 		controller: 'ItauController',
@@ -76,6 +70,11 @@ module.exports = {
 			strategy: 'paymentIntentionStrategy',
 			redirect: null
 		} 
+	},
+	'/redeem' : {
+		method: 'POST' ,
+		controller: 'ErpController',
+		action: 'assignTransaction'
 	},
 	'/sendPaymentSmart':{
 		method: 'GET',

@@ -12,6 +12,11 @@ module.exports = {
 			validateClient: 'http://itau20apiprep.clop.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
 			requestExchange: 'http://itau20apiprep.clop.cl/RealizarCanje',
 			cancelPreExchange: 'http://itau20apiprep.clop.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId'			
+		},
+		webpay: {
+			setPayment: 'http://192.168.254.65:8080/process/onlinePayWS?wsdl',
+			getPaymentStatus: 'http://192.168.254.65:8080/process/getPayStatusWS?wsdl',
+			processPayment: 'http://200.27.156.137/Boton_Pago_PP/onlinePay.asp?token=:token'
 		}
 	},
 	security: {

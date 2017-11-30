@@ -1,6 +1,6 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
-const Payment = require('../models/mongo/schemas/payment');
+const paymentModel = require('../models/mongo/Payment');
 
 function paymentAnalysis(_data){
 	let paidRecords  = _.filter(_data.status,function(o){ return o.status === 'PAGADO';});
@@ -25,7 +25,7 @@ function paymentAnalysis(_data){
 
 async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
     //safety checks
-	let paymentData = await Payment.getBySessionCpnr(_sessionToken,_cpnr);
+	let paymentData = await paymentModel.getBySessionCpnr(_sessionToken,_cpnr);
 	if(paymentData.business){
 		throw {
 			code:"BusinessAlreadyAssigned",
@@ -36,8 +36,8 @@ async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
 	if(payments.isConsistent){
 		if(payments.isPaid){
 			paymentData.business = _businessNumber;
-			var payment = new Payment.model(paymentData);
-			await Payment.save(payment);
+			var payment = new paymentModel.model(paymentData);
+			await paymentModel.save(payment);
 			return parsePaymentsRecords(payments.records);		
 		} else {
 			throw {
@@ -54,12 +54,12 @@ async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
 }
 
 async function addStatus(_sessionId,_status,_type,_currency,_paymentId, _amount, _info){
-	let data = await Payment.get(_sessionId);
+	let data = await paymentModel.get(_sessionId);
 	data.status.push({
 		id:_paymentId,transaction_type:_type,currency:_currency,status:_status,date:moment().toDate(),amount:_amount,info:_info
 	});
-    var payment = new Payment.model(data);
-    return await Payment.save(payment);	
+    var payment = new paymentModel.model(data);
+    return await paymentModel.save(payment);	
 }
 
 function parsePaymentsRecords(_records) {
