@@ -35,7 +35,7 @@ async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
 	let payments = paymentAnalysis(paymentData);
 	if(payments.isConsistent){
 		if(payments.isPaid){
-			paymentData.business = _businessNumber;
+			//paymentData.business = _businessNumber;
 			var payment = new paymentModel.model(paymentData);
 			await paymentModel.save(payment);
 			return parsePaymentsRecords(payments.records);		
