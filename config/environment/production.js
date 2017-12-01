@@ -1,6 +1,7 @@
 /*jshint esversion: 6 */
 
 module.exports = {
+	appName: 'PAYMENTS',
 	path: {
 		itau:{
 			validateRut: 'http://itau20apiprep.clop.cl/ValidaRutCanje',

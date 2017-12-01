@@ -80,7 +80,6 @@ async function checkDynamicKey(_ctx) {
 		dynamicKey: _ctx.params.dynamicKey,
 		dynamicKeyId: _ctx.params.dynamicKeyId
 	};
-
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.CLV_ESTADO, message: result.response.CLV_MENSAJE});
@@ -122,6 +121,7 @@ async function startSession(_ctx) {
 			}
 		}, _ctx.authSession);
 	});
+
 	return data;
 }
 
@@ -140,7 +140,6 @@ async function validateSessionFlow(_ctx) {
 		dynamicKey: _ctx.params.dynamicKey,
 		pageNumber: 0 //Ni idea cual es el plan con este campo
 	};
-
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg) : err.data.msg) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
@@ -176,21 +175,18 @@ async function requestPreExchange(_ctx) {
 		producto_id: 1, //Ni idea con este supuesto id
 		precanje_id: 0 //Tempoco se de que va
 	};
-
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.PRECANJE_ESTADO, message: result.response.PRECANJE_MENSAJE});
 			if (err) {
 				reject(err);
 			} else {
-
-
 				resolve({
 					status: result.response.PRECANJE_MENSAJE,
 					id: result.response.PRECANJE_ID,
 					availablePoints: +result.response.PRECANJE_SALDO_CLIENTE,
 					spentPoints: +result.response.PRECANJE_MONTO
-        		});
+        });
 			}
 		}, _ctx.authSession);
 	});
@@ -210,7 +206,6 @@ async function validateClient(_ctx) {
 		providerId: Koa.config.security.itau.providerId,
 		dynamicKeyId: _ctx.params.dynamicKeyId
 	};
-
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.CLI_ESTADO, message: result.response.CLI_MENSAJE});
@@ -243,7 +238,6 @@ async function requestExchange(_ctx) {
 		glosa_canje: _ctx.params.productName,
 		orden_compra: _ctx.params.cpnr,
 	};
-
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});
@@ -275,7 +269,6 @@ async function cancelPreExchange(_ctx) {
 		preExchangeId: _ctx.params.preExchangeId,
 		productId: 1
 	};
-
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});

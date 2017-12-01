@@ -51,8 +51,20 @@ function existsPaymentSession(paymentSessionId) {
 	});
 }
 
+function deletePaymentSession(paymentSessionId) {
+	return new Promise((resolve, reject) => {
+		RedisService.delFromRedis("paymentSession:" + paymentSessionId, (err, result) => {
+			if (err) {
+				Koa.log.error('Error deleting from Redis. Result: ' + err);
+			}
+			resolve(result);
+		});
+	});
+}
+
 module.exports = {
 	setPaymentSession: setPaymentSession,
 	getPaymentSession: getPaymentSession,
-	existsPaymentSession: existsPaymentSession
+	existsPaymentSession: existsPaymentSession,
+	deletePaymentSession: deletePaymentSession
 };

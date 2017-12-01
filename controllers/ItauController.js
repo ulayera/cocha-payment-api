@@ -145,18 +145,14 @@ async function executePayment(ctx) {
 		ctx.params.dv = userData.dv;
 		ctx.params.dynamicKeyId = userData.dynamicKey.id;
 		let preExchangeData = await itauServices.requestPreExchange(ctx);
-
-		await erpServices.addStatus(ctx.params.paymentSessionCode, "PENDIENTE", "ITAU", "CLP", preExchangeData.id,
-			preExchangeData.spentPoints, {
-				rut: ctx.params.rut
-			});
-
 		userData.availablePoints = preExchangeData.availablePoints;
 		userData.spentPoints = preExchangeData.spentPoints;
 		delete preExchangeData.availablePoints;
 		delete preExchangeData.spentPoints;
 		userData.preExchange = preExchangeData;
 
+		await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
+		
 		if (userData.spentPoints === userData.price) {
 			try {
 				userData.extraExchange = null;
@@ -168,31 +164,24 @@ async function executePayment(ctx) {
 				ctx.params.productName = userData.productName;
 				ctx.params.cpnr = userData.cpnr;
 				let exchangeData = await itauServices.requestExchange(ctx);
-
-				await erpServices.addStatus(ctx.params.paymentSessionCode, "PAGADO", "ITAU", "CLP", preExchangeData.id,
-					preExchangeData.spentPoints, {
-						rut: ctx.params.rut
-					});
-
-				userData.postExchange = exchangeData;
+				userData.postExchange = exchangeData;	
 			} catch (err) {
 				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-
-				await erpServices.addStatus(ctx.params.paymentSessionCode, "FALLO", "ITAU", "CLP", preExchangeData.id,
-					preExchangeData.spentPoints, {
-						rut: ctx.params.rut
-					});
-
+				await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
+				
 				throw err;
 			}
+			//Es posible preguntar a ITAU si se cobraron los puntos?
+			await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
+			await sessionPaymentServices.remove(ctx);
 		} else {
 			try {
 				let params = {
 					amount: userData.price - userData.spentPoints,
-					code: userData.cpnr,
-					appName: 'PKG.COCHA.COM-DESA' //Definir en los configs
+					code: userData.cochaCode,
+					appName: Koa.config.appName,
 				};
 				let paymentData = await new Promise((resolve, reject) => {
 					paymentServices.getPaymentData(params, (err, result) => {
@@ -203,27 +192,20 @@ async function executePayment(ctx) {
 						}
 					}, ctx.authSession);
 				});
+				userData.coPayment = params.amount;
 				userData.extraExchange = paymentData;
+				userData.extraExchange.paymentTry = 1;
 
-				await erpServices.addStatus(ctx.params.paymentSessionCode, "PENDIENTE", "WEBPAY", "CLP", paymentData.tokenWebPay,
-					params.amount, {
-						rut: ctx.params.rut,
-						token: paymentData.token
-					});
-
+				await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.token});
 			} catch (err) {
 				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-
-				await erpServices.addStatus(ctx.params.paymentSessionCode, "FALLO", "ITAU", "CLP", preExchangeData.id, userData.spentPoints, {
-					rut: ctx.params.rut
-				});
-
+				await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
+				
 				throw err;
 			}
 		}
-
 		await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 
 		ctx.body = {
@@ -242,23 +224,18 @@ async function executePayment(ctx) {
 	}
 }
 
-async function validatePayment(ctx) {
+async function checkPayment(ctx) {
 	let userData = ctx.authSession.userSessionData;
 	ctx.params.paymentSessionCode = userData.paymentSession;
 	if (await sessionPaymentServices.isValidAttempt(ctx) && ctx.authType === 'sessionOpen') {
-
-		let paymentData;
-
 		ctx.params.rut = userData.rut;
 		ctx.params.dv = userData.dv;
-		ctx.params.dynamicKeyId = userData.dynamicKey.id;
-
+		let paymentStatusData;
 		try {
 			let params = {
 				token: userData.extraExchange.token
 			};
-			console.log("aqui se imprime algo");
-			paymentData = await new Promise((resolve, reject) => {
+			paymentStatusData = await new Promise((resolve, reject) => {
 				paymentServices.checkPayment(params, (err, result) => {
 					if (err) {
 						reject(err);
@@ -267,40 +244,82 @@ async function validatePayment(ctx) {
 					}
 				}, ctx.authSession);
 			});
-
+			if (paymentStatusData.status !== '000' && (paymentStatusData.url === null || userData.extraExchange.paymentTry > 2)) {
+				throw {
+					status: 500,
+					message: {
+						code: 'PaymentAttemptsError',
+						msg: 'Estimado Cliente, ha excedido el número de intentos de pago'
+					}
+				};
+			}
 		} catch (err) {
 			Koa.log.error(err);
 			ctx.params.preExchangeId = userData.preExchange.id;
 			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-
+			await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
+			// FALLO WEBPAY -> DB
+			await sessionPaymentServices.remove(ctx);
 			throw err;
-		}
-		if (paymentData.url === null && paymentData.Status !== 0) {
-			await itauServices.cancelPreExchange(ctx);
+		} 
+		
+		if (paymentStatusData.status !== '000') {
+			// FALLO WEBPAY -> DB
+			userData.extraExchange.tokenWebPay = paymentStatusData.tokenWebPay;
+			userData.extraExchange.url = paymentStatusData.url;
+			userData.extraExchange.paymentTry++;
+			await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.token});
+				
+			await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
+
+			ctx.body = {
+				status: 'Pending',
+				url: userData.extraExchange.url
+			};
 		} else {
-			if (paymentData.token === null) {
-				await itauServices.cancelPreExchange(ctx);
-			} else {
-				console.log("QUE MIERDA PASA ACA");
-				userData.extraExchange = null;
+			// EXITO WEBPAY -> DB
+			try {
+				ctx.params.dynamicKeyId = userData.dynamicKey.id;
 				await itauServices.validateClient(ctx);
-				ctx.params.spendingPoint = userData.spentPoints;
+
 				ctx.params.preExchangeId = userData.preExchange.id;
-				ctx.params.extraExchangeAmount = 0;
+				ctx.params.spendingPoint = userData.spentPoints;
+				ctx.params.extraExchangeAmount = userData.coPayment;
 				ctx.params.productName = userData.productName;
 				ctx.params.cpnr = userData.cpnr;
 				let exchangeData = await itauServices.requestExchange(ctx);
-				userData.postExchange = exchangeData;
+				userData.postExchange = exchangeData;	
+
+				await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
+				await sessionPaymentServices.remove(ctx);
+	
+				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
+				
+				ctx.body = {
+					status: 'Complete',
+					url: null
+				};
+			} catch (err) {
+				Koa.log.error(err);
+				// Alguna forma de que quede pendiente validar el cobro de los puntos en un cron
+				ctx.body = {
+					status: 'PointsPending',
+					url: null
+				};
 			}
 		}
-
-		ctx.body = {
-			status: 'COMPLETE'
-		}
-	};
+	} else {
+		throw {
+			status: 401,
+			message: {
+				code: 'AuthError',
+				msg: 'Access denied'
+			}
+		};
+	}
 }
 
-async function cancelPreExchange(ctx) {
+async function cancelPayment(ctx) {
 	let params = {
 		rut: ctx.params.rut,
 		dv: ctx.params.dv,
@@ -316,6 +335,6 @@ module.exports = {
 	sendDynamicKey: sendDynamicKey,
 	validateDynamicKey: validateDynamicKey,
 	executePayment: executePayment,
-	cancelPreExchange: cancelPreExchange,
-	validatePayment: validatePayment
+	checkPayment: checkPayment,
+	cancelPayment: cancelPayment
 };

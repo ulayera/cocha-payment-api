@@ -3,7 +3,7 @@
 
 const paymentSessionModel = require('../models/redis/PaymentSession');
 const attemptSessionModel = require('../models/redis/AttemptSession');
-const Payment = require('../models/mongo/schemas/payment');
+const paymentModel = require('../models/mongo/Payment');
 
 async function create(_ctx) {
   let now = new Date();
@@ -26,14 +26,14 @@ async function create(_ctx) {
 		attempts: {}
 	};
 
-  var payment = new Payment.model({
+  var payment = new paymentModel.model({
     cpnr:session.data.cpnr,
     xpnr:session.data.cochaCode,
     total:session.data.price,
     ttl:Koa.config.mongoConf.ttlCron,
     email:session.data.contact
   });
-  payment = await Payment.save(payment);
+  payment = await paymentModel.save(payment);
   let sessionId = payment._id;
   
   await paymentSessionModel.setPaymentSession(sessionId, session);
@@ -42,6 +42,11 @@ async function create(_ctx) {
 
 async function get(_ctx) {
   return await paymentSessionModel.getPaymentSession(_ctx.params.paymentSessionCode);
+}
+
+async function remove(_ctx) {
+  await attemptSessionModel.delAttemptSession(_ctx.params.paymentSessionCode)
+  return await paymentSessionModel.deletePaymentSession(_ctx.params.paymentSessionCode);
 }
 
 async function isValidNewAttempt(_ctx) {
@@ -98,44 +103,28 @@ async function addAttempt(_ctx) {
 }
 
 async function isValidAttempt(_ctx) {
-  let attemptSessionData = await attemptSessionModel.getAttemptSession(_ctx.params.paymentSessionCode);
-  if (!attemptSessionData || attemptSessionData.attemptId !== _ctx.authSession.paymentIntentionId) {
+  if (await paymentSessionModel.existsPaymentSession(_ctx.params.paymentSessionCode)) {
+    let attemptSessionData = await attemptSessionModel.getAttemptSession(_ctx.params.paymentSessionCode);
+    if (!attemptSessionData || attemptSessionData.attemptId !== _ctx.authSession.paymentIntentionId) {
+      throw {
+        msg: 'Session attempt is not the same',
+        code: 'DifferentSessionError'
+      };
+    }
+    await attemptSessionModel.setAttemptSession(_ctx.params.paymentSessionCode, {attemptId: _ctx.authSession.paymentIntentionId});
+    return true;
+  } else {
     throw {
-      msg: 'Session attempt is not the same',
-      code: 'DifferentSessionError'
+      msg: 'Session payment is close',
+      code: 'SessionPaymentCloseError'
     };
   }
-  await attemptSessionModel.setAttemptSession(_ctx.params.paymentSessionCode, {attemptId: _ctx.authSession.paymentIntentionId});
-  return true;
 }
-
-/*
-
-function isValidAttempt(_sessionId, _attemptId, _callback) {
-	redisService.get('lastsession-attempt:' + _sessionId, function(errAtt, resultAtt) {
-		logDb({
-			attempt: _attemptId,
-			err: errAtt,
-			result: resultAtt,
-		}, 'valid-session', _sessionId);
-		if (!resultAtt || resultAtt.attemptId !== _attemptId) {
-			errAtt = {
-				msg: 'Session attempt is not the same',
-				code: 'DifferentSessionError'
-			};
-			_callback(errAtt, null);
-		} else {
-			redisService.set('lastsession-attempt:' + _sessionId, {attemptId: _attemptId}, 300, function(errAtt, resultAtt) {
-				_callback(null, true);
-			});
-		}
-	});
-}
-*/
 
 module.exports = {
 	create: create,
-	get: get,
+  get: get,
+  remove: remove,
 	isValidNewAttempt: isValidNewAttempt,
 	addAttempt: addAttempt,
 	isValidAttempt: isValidAttempt	
