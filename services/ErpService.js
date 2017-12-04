@@ -38,6 +38,7 @@ async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
 		if(payments.isPaid){
 			//paymentData.business = _businessNumber;
 			var payment = new paymentModel.model(paymentData);
+			paymentData.state = "CERRADO";
 			await paymentModel.save(payment);
 			return parsePaymentsRecords(payments.records);		
 		} else {
@@ -54,8 +55,13 @@ async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
 	}
 }
 
-async function addStatus(_sessionId,_status,_type,_currency,_paymentId, _amount, _info){
+async function addStatus(_sessionId,_status,_type,_currency,_paymentId, _amount, _info, _generalStatus){
 	let data = await paymentModel.get(_sessionId);
+	if(_generalStatus) {
+		data.state = _generalStatus;
+	} else {
+		data.state = _status;
+	}
 	data.status.push({
 		id:_paymentId,transaction_type:_type,currency:_currency,status:_status,date:moment().toDate(),amount:_amount,info:_info
 	});

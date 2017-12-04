@@ -30,7 +30,7 @@ async function create(_ctx) {
     cpnr:session.data.cpnr,
     xpnr:session.data.cochaCode,
     total:session.data.price,
-    ttl:Koa.config.mongoConf.ttlCron,
+    ttl:moment().unix() + Koa.config.mongoConf.ttlCron,
     email:session.data.contact
   });
   payment = await paymentModel.save(payment);

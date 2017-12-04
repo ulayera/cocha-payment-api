@@ -288,7 +288,7 @@ async function cancelPreExchange(_ctx) {
 module.exports = {
 	validateRut: validateRut,
 	generateDynamicKey: generateDynamicKey,
-  checkDynamicKey: checkDynamicKey,
+    checkDynamicKey: checkDynamicKey,
 	startSession: startSession,
 	validateSessionFlow: validateSessionFlow,
 	requestPreExchange: requestPreExchange,
