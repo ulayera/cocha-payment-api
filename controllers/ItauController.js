@@ -151,7 +151,7 @@ async function executePayment(ctx) {
 		delete preExchangeData.spentPoints;
 		userData.preExchange = preExchangeData;
 
-		await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
+		await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut},"PENDIENTE");
 		
 		if (userData.spentPoints === userData.price) {
 			try {
@@ -280,11 +280,17 @@ async function checkPayment(ctx) {
 		} 
 		
 		if (paymentStatusData.status !== '000') {
-			// FALLO WEBPAY -> DB
+			// FALLO WEBPAY -> DB			
+			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
+				 rut: userData.rut
+				,token: userData.extraExchange.token
+			});
+
 			userData.extraExchange.tokenWebPay = paymentStatusData.tokenWebPay;
 			userData.extraExchange.url = paymentStatusData.url;
 			userData.extraExchange.paymentTry++;
-			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
+
+			await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
 				 rut: userData.rut
 				,token: userData.extraExchange.token
 			});
@@ -300,7 +306,8 @@ async function checkPayment(ctx) {
 			await erpServices.addStatus(userData.paymentSession, "PAGADO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
 				 rut: userData.rut
 				,token: userData.extraExchange.token
-			});				
+			});
+
 			try {
 				ctx.params.dynamicKeyId = userData.dynamicKey.id;
 				await itauServices.validateClient(ctx);
@@ -330,6 +337,7 @@ async function checkPayment(ctx) {
 			} catch (err) {
 				Koa.log.error(err);
 				// Alguna forma de que quede pendiente validar el cobro de los puntos en un cron
+
 				ctx.body = {
 					status: 'PointsPending',
 					url: null

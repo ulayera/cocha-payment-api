@@ -57,6 +57,6 @@ module.exports = {
 		database: process.env.MONGODB_DB || 'local',
 		username: process.env.MONGODB_USER || null,
 		password: process.env.MONGODB_PASS || null,
-		ttlCron:10000		
+		ttlCron:600		
 	}
 };

@@ -15,7 +15,8 @@ var schema = new mongoose.Schema({
     }],
     business:{type: String},
     total:{type: Number},
-    ttl:{type: Number}
+    ttl:{type: Number},
+    state:{type: String}
 });
 
 
@@ -31,7 +32,7 @@ async function get(_id){
 		query = {'_id':_id};		
 	}
 	return new Promise((resolve, reject) => {
-		this.model.findOne(query, 'cpnr xpnr email type status business total ttl _id _v', function (err, payment) {
+		this.model.findOne(query, 'cpnr xpnr email type status business total ttl state _id _v', function (err, payment) {
 	  		if (err) {
 		        Koa.log.error(err);
 				reject({
