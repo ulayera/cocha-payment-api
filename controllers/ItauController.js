@@ -254,6 +254,7 @@ async function checkPayment(ctx) {
 				}, ctx.authSession);
 			});
 			if (paymentStatusData.status !== '000' && (paymentStatusData.url === null || userData.extraExchange.paymentTry > 2)) {
+
 				throw {
 					status: 500,
 					message: {
@@ -267,7 +268,14 @@ async function checkPayment(ctx) {
 			ctx.params.preExchangeId = userData.preExchange.id;
 			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
 			await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
+
 			// FALLO WEBPAY -> DB
+			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,
+			{
+				rut: userData.rut,
+				token: userData.extraExchange.token				
+			});
+
 			await sessionPaymentServices.remove(ctx);
 			throw err;
 		} 
@@ -277,7 +285,10 @@ async function checkPayment(ctx) {
 			userData.extraExchange.tokenWebPay = paymentStatusData.tokenWebPay;
 			userData.extraExchange.url = paymentStatusData.url;
 			userData.extraExchange.paymentTry++;
-			await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.token});
+			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
+				 rut: userData.rut
+				,token: userData.extraExchange.token
+			});
 				
 			await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 
@@ -286,7 +297,11 @@ async function checkPayment(ctx) {
 				url: userData.extraExchange.url
 			};
 		} else {
-			// EXITO WEBPAY -> DB
+			// EXITO WEBPAY -> DB				
+			await erpServices.addStatus(userData.paymentSession, "PAGADO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
+				 rut: userData.rut
+				,token: userData.extraExchange.token
+			});				
 			try {
 				ctx.params.dynamicKeyId = userData.dynamicKey.id;
 				await itauServices.validateClient(ctx);
@@ -299,8 +314,14 @@ async function checkPayment(ctx) {
 				let exchangeData = await itauServices.requestExchange(ctx);
 				userData.postExchange = exchangeData;	
 
-				await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
-				
+
+				await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
+					 rut: userData.rut
+					,payment_id:exchangeData.id
+				});
+				await sessionPaymentServices.remove(ctx);
+	
+
 				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 				
 				ctx.body = {
