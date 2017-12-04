@@ -171,7 +171,8 @@ async function executePayment(ctx) {
 
 				await erpServices.addStatus(ctx.params.paymentSessionCode, "PAGADO", "ITAU", "CLP", preExchangeData.id,
 					preExchangeData.spentPoints, {
-						rut: ctx.params.rut
+						 rut: ctx.params.rut
+						,payment_id:exchangeData.id
 					});
 
 				userData.postExchange = exchangeData;
