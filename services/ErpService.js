@@ -38,7 +38,7 @@ async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
 		if(payments.isPaid){
 			//paymentData.business = _businessNumber;
 			var payment = new paymentModel.model(paymentData);
-			paymentData.state = "CERRADO";
+			payment.state = "CERRADO";
 			await paymentModel.save(payment);
 			return parsePaymentsRecords(payments.records);		
 		} else {
