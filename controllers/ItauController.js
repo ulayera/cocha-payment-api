@@ -151,7 +151,7 @@ async function executePayment(ctx) {
 		delete preExchangeData.spentPoints;
 		userData.preExchange = preExchangeData;
 
-		await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut},"PENDIENTE");
+		await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
 		
 		if (userData.spentPoints === userData.price) {
 			try {
@@ -319,7 +319,6 @@ async function checkPayment(ctx) {
 				ctx.params.cpnr = userData.cpnr;
 				let exchangeData = await itauServices.requestExchange(ctx);
 				userData.postExchange = exchangeData;	
-
 
 				await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
 					 rut: userData.rut
