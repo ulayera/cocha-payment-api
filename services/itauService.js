@@ -16,7 +16,7 @@ async function validateRut(_ctx) {
 	};
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
 			if (err) {
 				reject(err);
 			} else {
@@ -82,7 +82,7 @@ async function checkDynamicKey(_ctx) {
 	};
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.CLV_ESTADO, message: result.response.CLV_MENSAJE});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CLV_ESTADO, message: result.response.CLV_MENSAJE});
 			if (err) {
 				reject(err);
 			} else {
@@ -110,7 +110,7 @@ async function startSession(_ctx) {
 	};
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.CLV_ESTADO, message: result.response.CLV_MENSAJE});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CLV_ESTADO, message: result.response.CLV_MENSAJE});
 			if (err) {
 				reject(err);
 			} else {
@@ -142,7 +142,7 @@ async function validateSessionFlow(_ctx) {
 	};
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg) : err.data.msg) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
 			if (err) {
 				reject(err);
 			} else {
@@ -177,7 +177,7 @@ async function requestPreExchange(_ctx) {
 	};
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.PRECANJE_ESTADO, message: result.response.PRECANJE_MENSAJE});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.PRECANJE_ESTADO, message: result.response.PRECANJE_MENSAJE});
 			if (err) {
 				reject(err);
 			} else {
@@ -208,7 +208,7 @@ async function validateClient(_ctx) {
 	};
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.CLI_ESTADO, message: result.response.CLI_MENSAJE});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CLI_ESTADO, message: result.response.CLI_MENSAJE});
 			if (err) {
 				reject(err);
 			} else {
@@ -240,7 +240,7 @@ async function requestExchange(_ctx) {
 	};
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});
 			if (err) {
 				reject(err);
 			} else {
@@ -271,7 +271,7 @@ async function cancelPreExchange(_ctx) {
 	};
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? err.data.msg.meta : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});
 			if (err) {
 				reject(err);
 			} else {

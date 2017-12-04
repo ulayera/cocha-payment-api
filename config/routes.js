@@ -62,7 +62,7 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'cancelPayment' : {
+	'/cancelPayment' : {
 		method: 'GET',
 		controller: 'ItauController',
 		action: 'cancelPayment', 

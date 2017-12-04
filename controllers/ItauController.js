@@ -300,8 +300,7 @@ async function checkPayment(ctx) {
 				userData.postExchange = exchangeData;	
 
 				await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
-				await sessionPaymentServices.remove(ctx);
-	
+				
 				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 				
 				ctx.body = {
@@ -315,6 +314,8 @@ async function checkPayment(ctx) {
 					status: 'PointsPending',
 					url: null
 				};
+			} finally {
+				await sessionPaymentServices.remove(ctx);
 			}
 		}
 	} else {
@@ -329,12 +330,29 @@ async function checkPayment(ctx) {
 }
 
 async function cancelPayment(ctx) {
-	let params = {
-		rut: ctx.params.rut,
-		dv: ctx.params.dv,
-		proveedor_id: ctx.params.proveedor_id,
-		precanje_id: ctx.params.precanje_id,
-		producto_id: ctx.params.producto_id
+	let userData = ctx.authSession.userSessionData;
+	ctx.params.paymentSessionCode = userData.paymentSession;
+	if (await sessionPaymentServices.isValidAttempt(ctx) && ctx.authType === 'sessionOpen') {
+		if (userData.preExchange && !userData.postExchange && userData.extraExchange) {
+			ctx.params.rut = userData.rut;
+			ctx.params.dv = userData.dv;
+			ctx.params.preExchangeId = userData.preExchange.id;
+			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
+			await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
+			// FALLO WEBPAY -> DB
+		}
+		await sessionPaymentServices.remove(ctx);
+		ctx.body = {
+			status: 'Complete'
+		};
+	} else {
+		throw {
+			status: 401,
+			message: {
+				code: 'AuthError',
+				msg: 'Access denied'
+			}
+		};
 	}
 }
 
