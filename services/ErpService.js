@@ -1,5 +1,6 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
+
 const paymentModel = require('../models/mongo/Payment');
 
 function paymentAnalysis(_data){

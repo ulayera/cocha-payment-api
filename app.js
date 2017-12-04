@@ -105,7 +105,7 @@ app.use(async (ctx, next) => {
 
 	ctx.response.remove('Connection');
 	ctx.response.set('Access-Control-Allow-Origin', '*');
-	ctx.response.set('Access-Control-Allow-Headers', 'sid, TrackId, FlowId, Origin, X-Requested-With, Content-Type, Accept, Authorization');
+	ctx.response.set('Access-Control-Allow-Headers', 'sid, TrackId, FlowId, Origin, X-Requested-With, Content-Type, Accept, Authorization, PaymentIntention');
 	ctx.response.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 	ctx.response.set('Content-Type', 'application/json; charset=utf-8');
 });

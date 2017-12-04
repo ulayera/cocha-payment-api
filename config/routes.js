@@ -53,19 +53,19 @@ module.exports = {
 			redirect: null
 		} 
 	},
-	'/validatePayment' : { 
+	'/checkPayment' : { 
 		method: 'GET',
 		controller: 'ItauController',
-		action: 'validatePayment',
+		action: 'checkPayment',
 		auth:  {
 			strategy: 'paymentIntentionStrategy',
 			redirect: null
 		}
 	},
-	'cancelpreexchange/:rut/:dv/:proveedor_id/:precanje_id/:producto_id' : {
+	'cancelPayment' : {
 		method: 'GET',
 		controller: 'ItauController',
-		action: 'cancelpreexchange', 
+		action: 'cancelPayment', 
 		auth: {
 			strategy: 'paymentIntentionStrategy',
 			redirect: null

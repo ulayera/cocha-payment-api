@@ -37,6 +37,17 @@ function getAttemptSession(attemptSessionId) {
 	});
 }
 
+function delAttemptSession(attemptSessionId) {
+	return new Promise((resolve, reject) => {
+		RedisService.delFromRedis("attemptSession:" + attemptSessionId, (err, result) => {
+			if (err) {
+				Koa.log.error('Error deleting from Redis. Result: ' + err);
+			}
+			resolve(result);
+		});
+	});
+}
+
 function existsAttemptSession(attemptSessionId) {
 	return new Promise((resolve, reject) => {
 		RedisService.existInRedis("attemptSession:" + attemptSessionId, (err, result) => {
@@ -57,5 +68,6 @@ function existsAttemptSession(attemptSessionId) {
 module.exports = {
 	setAttemptSession: setAttemptSession,
 	getAttemptSession: getAttemptSession,
+	delAttemptSession: delAttemptSession,
 	existsAttemptSession: existsAttemptSession
 };
