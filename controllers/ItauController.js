@@ -183,7 +183,6 @@ async function executePayment(ctx) {
 				throw err;
 			}
 			//Es posible preguntar a ITAU si se cobraron los puntos?
-			await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
 			await sessionPaymentServices.remove(ctx);
 		} else {
 			try {
@@ -272,8 +271,8 @@ async function checkPayment(ctx) {
 			// FALLO WEBPAY -> DB
 			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,
 			{
-				rut: userData.rut,
-				token: userData.extraExchange.token				
+				 rut: userData.rut
+				,token: userData.extraExchange.token				
 			});
 
 			await sessionPaymentServices.remove(ctx);
@@ -361,6 +360,10 @@ async function cancelPayment(ctx) {
 			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
 			await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
 			// FALLO WEBPAY -> DB
+			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {
+				 rut: userData.rut
+				,token: userData.extraExchange.token
+			});			
 		}
 		await sessionPaymentServices.remove(ctx);
 		ctx.body = {
