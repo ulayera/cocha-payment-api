@@ -2,6 +2,8 @@
 /* jshint strict: false, esversion: 6 */
 
 const paymentModel = require('../models/mongo/Payment');
+let soapCall = require('soap');
+let soapClients = {};
 
 function paymentAnalysis(_data){
 	let paidRecords  = _.filter(_data.status,function(o){ return o.status === 'PAGADO';});
@@ -82,7 +84,67 @@ function parsePaymentsRecords(_records) {
 	return parsed;
 }
 
+async function soap(_params, _url, _action, _workflowData) {   
+    _workflowData.function = 'canjeServiceWS:canjeServiceRequest';
+	_workflowData.method = 'SOAP';
+	_workflowData.serviceUrl = _url + ' -> ' + _action;
+	_workflowData.params = _params;
+
+	let response;
+	try {
+		response = await soapRequest(_params, _url, _action);
+    	if (!response) {
+			throw 'Respuesta vacia'
+		}
+		_workflowData.data = _.cloneDeep(response);
+		_workflowData.success = true;
+		Koa.log.infoSL(_workflowData);
+	} catch (error) {
+		_workflowData.data = error;
+		_workflowData.success = false;
+		Koa.log.errorSL(_workflowData);
+		return {
+			message: {
+				msg: error,
+				code: 'error'
+			}
+		};
+	}
+	return response;
+}
+
+
+async function soapRequest(_params, _wsdlUri, _method) {
+	return await new Promise((resolve, reject) => {	
+		soapCall.createClient(_wsdlUri, (err, soapClient) => {
+			if (err) {
+				reject(err);
+			} else {
+				soapClients[_wsdlUri] = soapClient;
+				soapClient[_method](_params, (err, resp) => {
+					if(err){
+						reject(err);
+					} else {
+						resolve(resp);
+					}	
+				});
+			}
+		});
+	});
+}
+
+async function informPayment(_sessionId){
+	let data = await paymentModel.get(_sessionId);
+	let params = {
+		 ITAU:_sessionId
+		,EMAIL:data.email
+		,CPNR:data.cpnr
+	};
+	return await soap(params, Koa.config.path.erp.redeem, "canjeServiceWS", {});
+}
+
 module.exports = {
-	assignTransaction:assignTransaction,
-	addStatus:addStatus
+	 assignTransaction:assignTransaction
+	,addStatus:addStatus
+	,informPayment:informPayment
 }   

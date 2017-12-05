@@ -75,12 +75,6 @@ module.exports = {
 		method: 'POST' ,
 		controller: 'ErpController',
 		action: 'assignTransaction'
-	},
-	'/sendPaymentSmart':{
-		method: 'GET',
-		controller: 'SmartController',
-		action: 'sendPayment'
 	}
-
 };
 

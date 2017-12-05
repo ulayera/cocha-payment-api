@@ -173,6 +173,14 @@ async function executePayment(ctx) {
 
 				userData.postExchange = exchangeData;
 
+				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode);
+				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK'){
+					await erpServices.addStatus(ctx.params.paymentSessionCode, "CERRADO", "ITAU", "CLP", preExchangeData.id,
+					preExchangeData.spentPoints, {
+						 rut: ctx.params.rut
+						,payment_id:exchangeData.id
+					});
+				}
 
 			} catch (err) {
 				Koa.log.error(err);
@@ -326,6 +334,13 @@ async function checkPayment(ctx) {
 				});
 				await sessionPaymentServices.remove(ctx);
 	
+				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode);
+				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK'){
+					await erpServices.addStatus(userData.paymentSession, "CERRADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
+						 rut: userData.rut
+						,payment_id:exchangeData.id
+					});
+				}
 
 				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 				

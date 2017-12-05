@@ -18,6 +18,10 @@ module.exports = {
 			setPayment: 'http://192.168.254.65:8080/process/onlinePayWS?wsdl',
 			getPaymentStatus: 'http://192.168.254.65:8080/process/getPayStatusWS?wsdl',
 			processPayment: 'http://200.27.156.137/Boton_Pago_PP/onlinePay.asp?token=:token'
+		},
+		erp:{
+			//redeem:'http://192.168.254.65:8080/process/canjeServiceWS?wsdl'
+			redeem: './resources/canjeServiceWS.wsdl'
 		}
 	},
 	security: {
