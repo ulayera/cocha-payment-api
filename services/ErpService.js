@@ -122,6 +122,7 @@ async function soapRequest(_params, _wsdlUri, _method) {
 			} else {
 				soapClients[_wsdlUri] = soapClient;
 				soapClient[_method](_params, (err, resp) => {
+					console.log(err,resp);
 					if(err){
 						reject(err);
 					} else {
