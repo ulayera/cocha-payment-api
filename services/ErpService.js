@@ -40,7 +40,6 @@ async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
 		if(payments.isPaid){
 			//paymentData.business = _businessNumber;
 			var payment = new paymentModel.model(paymentData);
-			payment.state = "CERRADO";
 			await paymentModel.save(payment);
 			return parsePaymentsRecords(payments.records);		
 		} else {
@@ -144,8 +143,38 @@ async function informPayment(_sessionId){
 	return await soap(params, Koa.config.path.erp.redeem, "canjeServiceWS", {});
 }
 
+async function checkTransaction(_sessionToken,_cpnr){
+    //safety checks
+	let paymentData = await paymentModel.getBySessionCpnr(_sessionToken,_cpnr);
+	if(!paymentData.business){
+		throw {
+			code:"BusinessNotAssigned"
+		};
+	}
+	let payments = paymentAnalysis(paymentData);
+	if(payments.isConsistent){
+		if(payments.isPaid){
+			//paymentData.business = _businessNumber;
+			var payment = new paymentModel.model(paymentData);
+			await paymentModel.save(payment);
+			return parsePaymentsRecords(payments.records);		
+		} else {
+			throw {
+				code:"PaidAmountsDontMatch",
+				records:payments.records
+			};
+		}
+	} else {
+		throw {
+			code:"DbConsistencyError",
+			records:payments.records
+		};
+	}
+}
+
 module.exports = {
 	 assignTransaction:assignTransaction
 	,addStatus:addStatus
 	,informPayment:informPayment
+	,checkTransaction:checkTransaction
 }   

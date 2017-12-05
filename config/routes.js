@@ -75,6 +75,11 @@ module.exports = {
 		method: 'POST' ,
 		controller: 'ErpController',
 		action: 'assignTransaction'
+	},
+	'/checkStatus' : {
+		method: 'GET' ,
+		controller: 'ErpController',
+		action: 'checkTransaction'
 	}
 };
 

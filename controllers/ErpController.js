@@ -43,6 +43,45 @@ async function assignTransaction(ctx){
 	}
 }
 
+async function checkTransaction(ctx){
+	try{
+		let result = await erpService.checkTransaction(ctx.params.sessionToken,ctx.params.cpnr);
+		ctx.status = 200;
+		ctx.body = result;
+	} catch (err) {
+		ctx.status = err.status || 500;
+		let detail = ((typeof err.message === 'object') ? err.message : JSON.stringify(err));
+		if(err.code === 'PaymentNotFound'){
+			throw {
+				status:ctx.status,
+				message:{
+					 code:"01"
+					,msg:"CPNR NO ENCONTRADO"
+					,detail:detail
+				}				
+			};
+		} else if (err.code === 'BusinessNotAssigned') {
+			throw {
+				status:ctx.status,
+				message:{
+					 code:"02"
+					,msg:"NEGOCIO NO ASIGNADO"
+				}
+			};
+		} else {
+			throw {
+				status:500,
+				message:{
+					 code:"03"
+					,msg:"ERROR INTERNO"
+					,detail:detail
+				}
+			};			
+		}
+	}
+}
+
 module.exports = {
-	assignTransaction: assignTransaction
+	 assignTransaction: assignTransaction
+	,checkTransaction: checkTransaction
 };
