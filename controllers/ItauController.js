@@ -174,6 +174,7 @@ async function executePayment(ctx) {
 				userData.postExchange = exchangeData;
 
 				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode);
+
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK'){
 					await erpServices.addStatus(ctx.params.paymentSessionCode, "CERRADO", "ITAU", "CLP", preExchangeData.id,preExchangeData.spentPoints, {
 						 rut: ctx.params.rut + '-' + ctx.params.dv
