@@ -2,6 +2,8 @@
 /* jshint strict: false, esversion: 6 */
 
 const paymentModel = require('../models/mongo/Payment');
+const securityServices 	= require('cocha-external-services').securityServices;
+
 let soapCall = require('soap');
 let soapClients = {};
 
@@ -70,17 +72,65 @@ async function addStatus(_sessionId,_status,_type,_currency,_paymentId, _amount,
     return await paymentModel.save(payment);	
 }
 
-function parsePaymentsRecords(_records) {
+function parsePaymentData(_data){
+	console.log(_data);
+	if(!_data || !_data.length) {
+		return undefined;
+	}
+	let response = {
+		 payAmount:_data[0].monto
+		,numCuotas:_data[0].num_cuotas
+		,cardCode:_data[0].marcaTJ
+		,cardNumber:decrypt(_data[0].numero_tarjeta)
+		,expireDate:_data[0].expiracion
+		,authCode:_data[0].codigo_autorizacion
+		,trReferenc:_data[0].id_cocha
+		,meReferenc:Koa.config.commerceCode		
+	};
+	console.log('marca');
+	return response;
+}
+
+function decrypt(_data){
+	var arrKey = securityServices.key.split(securityServices.separator);
+	var valueArray =  _data.split(securityServices.separator);
+	var decrypted = '';
+	var j;
+	for(var i=0;i<valueArray.length;i++){
+		j = securityServices.array_search(valueArray[i],arrKey);
+		decrypted += securityServices.chr(j);
+	}
+	return decrypted;
+}
+
+function parsePaymentsRecords(_records,_businessNumber,_useExtraData) {
 	let parsed = [];
 	_.forEach(_records,function(value){
-		parsed.push({
+		let data = {
 			type: value.transaction_type,
 			amount: value.amount,			
 			currency: value.currency,
-			info: value.info
-		});
+			info: {
+				rut:value.info.rut,
+				token:value.info.token,
+				paymentId:value.info.payment_id
+			}
+		};
+		if(_useExtraData){
+			data.info.paymentData = parsePaymentData(value.info.paymentData);			
+		}
+		parsed.push(data);
 	});
-	return parsed;
+
+	if(_useExtraData){
+		let response = {
+			businessNumber:_businessNumber
+			payments:parsed
+		};
+		return response;
+	} else {
+		return parsed;		
+	}
 }
 
 async function soap(_params, _url, _action, _workflowData) {   
@@ -136,7 +186,7 @@ async function soapRequest(_params, _wsdlUri, _method) {
 async function informPayment(_sessionId){
 	let data = await paymentModel.get(_sessionId);
 	let params = {
-		 ITAU:_sessionId
+		 TOKEN:_sessionId
 		,EMAIL:data.email
 		,CPNR:data.cpnr
 	};
@@ -151,13 +201,11 @@ async function checkTransaction(_sessionToken,_cpnr){
 			code:"BusinessNotAssigned"
 		};
 	}
+	
 	let payments = paymentAnalysis(paymentData);
 	if(payments.isConsistent){
 		if(payments.isPaid){
-			//paymentData.business = _businessNumber;
-			var payment = new paymentModel.model(paymentData);
-			await paymentModel.save(payment);
-			return parsePaymentsRecords(payments.records);		
+			return parsePaymentsRecords(payments.records,paymentData.business,'extraPaymentData');		
 		} else {
 			throw {
 				code:"PaidAmountsDontMatch",

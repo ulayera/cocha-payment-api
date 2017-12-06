@@ -76,7 +76,7 @@ module.exports = {
 		controller: 'ErpController',
 		action: 'assignTransaction'
 	},
-	'/checkStatus' : {
+	'/checkStatus/:sessionToken/:cpnr' : {
 		method: 'GET' ,
 		controller: 'ErpController',
 		action: 'checkTransaction'

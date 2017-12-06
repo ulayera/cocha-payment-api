@@ -88,7 +88,7 @@ async function checkDynamicKey(_ctx) {
 			} else {
 				resolve({
 					checkingStatus: result.response.CLV_MENSAJE
-        });
+        		});
 			}
 		}, _ctx.authSession);
 	});

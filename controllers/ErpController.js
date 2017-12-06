@@ -49,6 +49,7 @@ async function checkTransaction(ctx){
 		ctx.status = 200;
 		ctx.body = result;
 	} catch (err) {
+		console.log(JSON.stringify(err));
 		ctx.status = err.status || 500;
 		let detail = ((typeof err.message === 'object') ? err.message : JSON.stringify(err));
 		if(err.code === 'PaymentNotFound'){
