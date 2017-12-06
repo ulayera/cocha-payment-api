@@ -39,7 +39,7 @@ module.exports = {
 		enabled: true
 	},
 	redisConf: {
-		host: process.env.REDIS_HOST || '127.0.0.1',
+		host: process.env.REDIS_HOST || 'mid-redis.cocha.com',
 		port: parseInt(process.env.REDIS_PORT) || 6379,
 		db: parseInt(process.env.REDIS_DB) || 0,
 		expire: 60 * 60 * 24, // Seconds -> 24h
@@ -56,11 +56,11 @@ module.exports = {
 		// insecureAuth: true
 	},
 	mongoConf: {
-		host: process.env.MONGODB_HOST || 'localhost',
+		host: process.env.MONGODB_HOST || 'mongo-db-desa.cocha.com',
 		port: parseInt(process.env.MONGODB_PORT) || 27017,
 		database: process.env.MONGODB_DB || 'local',
-		username: process.env.MONGODB_USER || null,
-		password: process.env.MONGODB_PASS || null,
+		username: process.env.MONGODB_USER || 'payment',
+		password: process.env.MONGODB_PASS || 'payment1234',
 		ttlCron:600		
 	}
 };

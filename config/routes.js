@@ -75,6 +75,11 @@ module.exports = {
 		method: 'POST' ,
 		controller: 'ErpController',
 		action: 'assignTransaction'
+	},
+	'/checkStatus/:sessionToken/:cpnr' : {
+		method: 'GET' ,
+		controller: 'ErpController',
+		action: 'checkTransaction'
 	}
 };
 
