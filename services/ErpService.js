@@ -72,65 +72,23 @@ async function addStatus(_sessionId,_status,_type,_currency,_paymentId, _amount,
     return await paymentModel.save(payment);	
 }
 
-function parsePaymentData(_data){
-	console.log(_data);
-	if(!_data || !_data.length) {
-		return undefined;
-	}
-	let response = {
-		 payAmount:_data[0].monto
-		,numCuotas:_data[0].num_cuotas
-		,cardCode:_data[0].marcaTJ
-		,cardNumber:decrypt(_data[0].numero_tarjeta)
-		,expireDate:_data[0].expiracion
-		,authCode:_data[0].codigo_autorizacion
-		,trReferenc:_data[0].id_cocha
-		,meReferenc:Koa.config.commerceCode		
-	};
-	console.log('marca');
-	return response;
-}
 
-function decrypt(_data){
-	var arrKey = securityServices.key.split(securityServices.separator);
-	var valueArray =  _data.split(securityServices.separator);
-	var decrypted = '';
-	var j;
-	for(var i=0;i<valueArray.length;i++){
-		j = securityServices.array_search(valueArray[i],arrKey);
-		decrypted += securityServices.chr(j);
-	}
-	return decrypted;
-}
-
-function parsePaymentsRecords(_records,_businessNumber,_useExtraData) {
+function parsePaymentsRecords(_records,_businessNumber) {
 	let parsed = [];
 	_.forEach(_records,function(value){
 		let data = {
-			type: value.transaction_type,
-			amount: value.amount,			
-			currency: value.currency,
-			info: {
-				rut:value.info.rut,
-				token:value.info.token,
-				paymentId:value.info.payment_id
-			}
+			 type: value.transaction_type
+			,amount: value.amount
+			,currency: value.currency
+			,info: value.info
 		};
-		if(_useExtraData){
-			data.info.paymentData = parsePaymentData(value.info.paymentData);			
-		}
 		parsed.push(data);
 	});
 
-	if(_useExtraData){
-		let response = {
-			businessNumber:_businessNumber
-			payments:parsed
-		};
-		return response;
-	} else {
-		return parsed;		
-	}
+	return {
+		 businessNumber:_businessNumber
+		,payments:parsed
+	};
 }
 
 async function soap(_params, _url, _action, _workflowData) {   

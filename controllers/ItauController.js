@@ -270,6 +270,7 @@ async function checkPayment(ctx) {
 			await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
 				rut: userData.rut + '-' + userData.dv
 			});
+
 			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {});
 			await sessionPaymentServices.remove(ctx);
 			throw err;
@@ -281,6 +282,7 @@ async function checkPayment(ctx) {
 			userData.extraExchange.url = paymentData.url;
 			userData.extraExchange.paymentTry++;
 			await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {});
+
 			await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 
 			ctx.body = {
