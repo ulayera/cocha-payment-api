@@ -1,7 +1,6 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
 
-const paymentServices = require('cocha-external-services').paymentServices;
 const sessionPaymentServices = require('../services/SessionPaymentService');
 const itauServices = require('../services/ItauService');
 const erpServices = require('../services/ErpService');
@@ -196,23 +195,16 @@ async function executePayment(ctx) {
 			try {
 				let params = {
 					amount: userData.price - userData.spentPoints,
-					code: userData.cochaCode,
-					appName: Koa.config.appName,
+					cochaCode: userData.cochaCode,
+					holderName: userData.name,
+					holderEmail: userData.email
 				};
-				let paymentData = await new Promise((resolve, reject) => {
-					paymentServices.getPaymentData(params, (err, result) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve(result);
-						}
-					}, ctx.authSession);
-				});
+				let paymentData = await webpayServices.getPaymentData(params);
 				userData.coPayment = params.amount;
 				userData.extraExchange = paymentData;
 				userData.extraExchange.paymentTry = 1;
 
-				await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.token});
+				await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.tokenWebPay});
 			} catch (err) {
 				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
@@ -246,75 +238,52 @@ async function checkPayment(ctx) {
 	if (await sessionPaymentServices.isValidAttempt(ctx) && ctx.authType === 'sessionOpen') {
 		ctx.params.rut = userData.rut;
 		ctx.params.dv = userData.dv;
+		let paymentData;
 		let paymentStatusData;
 		try {
-			let params = {
-				token: userData.extraExchange.token
-			};
-			paymentStatusData = await new Promise((resolve, reject) => {
-				paymentServices.checkPayment(params, (err, result) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(result);
-					}
-				}, ctx.authSession);
-			});
-			if (paymentStatusData.status !== '000' && (paymentStatusData.url === null || userData.extraExchange.paymentTry > 2)) {
-
-				throw {
-					status: 500,
-					message: {
-						code: 'PaymentAttemptsError',
-						msg: 'Estimado Cliente, ha excedido el número de intentos de pago'
-					}
-				};
+			paymentStatusData = await webpayServices.checkPayment(userData.extraExchange.tokenWebPay);
+			if (paymentStatusData.status === 'Pending') {
+				if (userData.extraExchange.paymentTry > 2) {
+					throw {
+						status: 500,
+						message: {
+							code: 'PaymentAttemptsError',
+							msg: 'Estimado Cliente, ha excedido el número de intentos de pago'
+						}
+					};
+				} else {
+					let params = {
+						amount: userData.coPayment,
+						cochaCode: userData.cochaCode,
+						holderName: userData.name,
+						holderEmail: userData.email
+					};
+					paymentData = await webpayServices.getPaymentData(params);
+				}
 			}
 		} catch (err) {
-			Koa.log.error(err);
 			ctx.params.preExchangeId = userData.preExchange.id;
 			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
 			await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
-
-			// FALLO WEBPAY -> DB
-			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,
-			{
-				 rut: userData.rut
-				,token: userData.extraExchange.token				
-			});
-
+			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.tokenWebPay});
 			await sessionPaymentServices.remove(ctx);
 			throw err;
 		} 
 		
-		if (paymentStatusData.status !== '000') {
-			// FALLO WEBPAY -> DB			
-			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
-				 rut: userData.rut
-				,token: userData.extraExchange.token
-			});
-
-			userData.extraExchange.tokenWebPay = paymentStatusData.tokenWebPay;
-			userData.extraExchange.url = paymentStatusData.url;
+		if (paymentStatusData.status === 'Pending') {	
+			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.tokenWebPay});
+			userData.extraExchange.tokenWebPay = paymentData.tokenWebPay;
+			userData.extraExchange.url = paymentData.url;
 			userData.extraExchange.paymentTry++;
-
-			await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
-				 rut: userData.rut
-				,token: userData.extraExchange.token
-			});
-				
+			await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.tokenWebPay});
 			await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 
 			ctx.body = {
 				status: 'Pending',
 				url: userData.extraExchange.url
 			};
-		} else {
-			// EXITO WEBPAY -> DB				
-			await erpServices.addStatus(userData.paymentSession, "PAGADO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
-				 rut: userData.rut
-				,token: userData.extraExchange.token
-			});
+		} else {		
+			await erpServices.addStatus(userData.paymentSession, "PAGADO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.tokenWebPay});
 
 			try {
 				ctx.params.dynamicKeyId = userData.dynamicKey.id;
@@ -328,18 +297,12 @@ async function checkPayment(ctx) {
 				let exchangeData = await itauServices.requestExchange(ctx);
 				userData.postExchange = exchangeData;	
 
-				await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
-					 rut: userData.rut
-					,payment_id:exchangeData.id
-				});
+				await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut, payment_id:exchangeData.id});
 				await sessionPaymentServices.remove(ctx);
 	
-				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode);
+				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode); //Necesita un await?
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK'){
-					await erpServices.addStatus(userData.paymentSession, "CERRADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
-						 rut: userData.rut
-						,payment_id:exchangeData.id
-					});
+					await erpServices.addStatus(userData.paymentSession, "CERRADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut, payment_id:exchangeData.id});
 				}
 
 				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
@@ -381,11 +344,7 @@ async function cancelPayment(ctx) {
 			ctx.params.preExchangeId = userData.preExchange.id;
 			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
 			await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {rut: userData.rut});
-			// FALLO WEBPAY -> DB
-			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {
-				 rut: userData.rut
-				,token: userData.extraExchange.token
-			});			
+			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {rut: userData.rut, token: userData.extraExchange.tokenWebPay});			
 		}
 		await sessionPaymentServices.remove(ctx);
 		ctx.body = {
