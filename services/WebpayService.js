@@ -1,86 +1,86 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
 
-const soap = require('soap'); 
+const soapServices = require('./SoapService');
 
-// let clientPayment;
-// soap.createClient(Koa.config.path.webpay.setPayment, (err, soapClient) => {
-//   if (err) {
-//     Koa.log.error(err);
-//   } else {
-//     clientPayment = soapClient;
-//   }
-// });
-// let clientPaymentStatus;
-// soap.createClient(Koa.config.path.webpay.getPaymentStatus, (err, soapClient) => {
-//   if (err) {
-//     Koa.log.error(err);
-//   } else {
-//     clientPaymentStatus = soapClient;
-//   }
-// });
+async function getPaymentData(_paymentParams) {
+  let url = Koa.config.path.webpay.setPayment;
+  let params = {
+    paySource: _paymentParams.source || 'OJ', //xsd:string|OJ,SMART,
+    payMode: _paymentParams.type || 'WebPay', //xsd:string|BancoChile,BancoSantander,WebPay,TarjetaRipley,
+    titularName: _paymentParams.holderName,
+    titularEmail: _paymentParams.holderEmail,
+    totalCost: Number(_paymentParams.amount),
+    ocNumber: _paymentParams.cochaCode,
+    chargesNumber: 1,
+    commerceName: Koa.config.appName,
+    charges: {
+      charge: {
+        storeCode: Koa.config.commerceCode,
+        storeOC: _paymentParams.cochaCode,
+        storeCost: String(_paymentParams.amount)
+      }
+    }
+  }
+  let paymenData = await soapServices.callService(url, 'onlinePayWS', params);
+  if (paymenData.code !== '00') {
+    throw {
+      message: {
+        code: 'PaymentWPError',
+        msg: paymenData.message
+      }
+    };
+  } else {
+    return {
+      status: 'Complete',
+      tokenWebPay: paymenData.token,
+      url: Koa.config.path.webpay.processPayment.replace(':token', paymenData.token),
+      idCocha: paymenData.idCocha
+    };
+  }
+}
 
-module.exports = (async function() {
-  let client = await Promise.all({
-    paymentData: new Promise((resolve, reject) => {
-      console.log('A01');
-      soap.createClient(Koa.config.path.webpay.setPayment, {
-        ignoredNamespaces: {
-          namespaces: ['targetNamespace', 'typedNamespace'],
-          override: true
-        }
-      },(err, soapClient) => {
-        console.log('A01-R');
-        if (err) {
-          Koa.log.error(err);
-          reject(err);
-        } else {
-          resolve(soapClient);
-        }
-      });
-    }),
-    // paymentStatus: new Promise((resolve, reject) => {
-    //   console.log('A02');
-    //   soap.createClient(Koa.config.path.webpay.getPaymentStatus, (err, soapClient) => {
-    //     console.log('A02-R');      
-    //     if (err) {
-    //       Koa.log.error(err);
-    //       reject(err);
-    //     } else {
-    //       resolve(soapClient);
-    //     }
-    //   });
-    // })
-  });
+async function checkPayment(_paymentToken) {
+  let url = Koa.config.path.webpay.getPaymentStatus;
+  let params = {
+    token: _paymentToken
+  }
+  let paymenStatusData = await soapServices.callService(url, 'getPayStatusWS', params);
+  if (paymenStatusData.code !== '00') {
+    return {
+      status: 'Pending',
+      message: paymenStatusData.message
+    };
+  }  else {
+    let charge = paymenStatusData.charges.charge[0];
+    if (charge.status === 'APROBADA') {
+      return {
+        status: 'Complete',
+        message: 'Aprobado',
+        paymentType: charge.medioPago,
+        idCocha: charge.idCocha,
+        authorizationCode: charge.codigoAutorizacion,        
+        cardNumber: charge.numeroTarjeta,
+        cardExp: charge.expTarjeta,
+        cardType: charge.marcaTC,
+        dues: charge.cuotas,
+        amount: charge.monto  
+      };
+    } else {
+      return {
+        status: 'Pending',
+        message: paymenStatusData.message
+      };
+    }
+  }
+}
 
-  console.log(client);
-})();
-// function callSoapService(_wsdlUri, _wsdlMethod, _wsdlParams, _cbThen, _cdCatch) {
-// 	function callSoapMethod(client) {
-// 		client[_wsdlMethod](_wsdlParams, (err, result) => {
-// 			if (err) {
-// 				_cbThen(err);
-// 			} else {
-// 				_cdCatch(result);
-// 			}
-// 		});
-// 	}
+module.exports = {
+  getPaymentData: getPaymentData,
+  checkPayment: checkPayment
+};
 
-// 	if (soapClients[_wsdlUri]) {
-// 		callSoapMethod(soapClients[_wsdlUri]);
-// 	} else {
-// 		soap.createClient(_wsdlUri, (err, soapClient) => {
-// 			if (err) {
-// 				_cbThen(err);
-// 			} else {
-// 				soapClients[_wsdlUri] = soapClient;
-// 				callSoapMethod(soapClient);
-// 			}
-// 		});
-// 	}
-// }
 
-// module.exports = {
-//   // getPaymentData: callSoapService,
-//   // checkPayment: checkPayment
-// };
+
+
+

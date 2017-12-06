@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="urn:botonPagoPP/process/onlinePayWS" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="urn:botonPagoPP/process/onlinePayWS" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:botonPagoPP/process/onlinePayWS">
+	        <xsd:element name="onlinePayRequest">
+	            <xsd:complexType>
+	                <xsd:sequence>
+	                    <xsd:element name="paySource" type="source"/>
+	                    <xsd:element name="payMode" type="modePay"/>
+	                    <xsd:element name="titularName" type="xsd:string"/>
+	                    <xsd:element name="titularEmail" type="xsd:string"/>
+	                    <xsd:element name="totalCost" type="xsd:integer"/>
+	                    <xsd:element name="ocNumber" type="xsd:string"/>
+	                    <xsd:element name="chargesNumber" type="xsd:integer"/>
+	                    <xsd:element name="commerceName" type="xsd:string"/>
+	                    <xsd:element name="charges">
+	                        <xsd:complexType>
+	                            <xsd:sequence>
+	                                <xsd:element minOccurs="1" name="charge">
+	                                    <xsd:complexType>
+	                                        <xsd:sequence>
+	                                            <xsd:element name="storeCode" type="xsd:string"/>
+	                                            <xsd:element name="storeOC" type="xsd:string"/>
+	                                            <xsd:element name="storeCost" type="xsd:string"/>
+	                                        </xsd:sequence>
+	                                    </xsd:complexType>
+	                                </xsd:element>
+	                            </xsd:sequence>
+	                        </xsd:complexType>
+	                    </xsd:element>
+	                </xsd:sequence>
+	            </xsd:complexType>
+	        </xsd:element>
+	        <xsd:element name="onlinePayResponse">
+	            <xsd:complexType>
+	                <xsd:sequence>
+	                    <xsd:element name="code" type="xsd:string"/>
+	                    <xsd:element name="message" type="xsd:string"/>
+	                    <xsd:element name="error" type="xsd:string"/>
+	                    <xsd:element name="idCocha" type="xsd:string"/>
+	                    <xsd:element name="token" type="xsd:string"/>
+	                </xsd:sequence>
+	            </xsd:complexType>
+	        </xsd:element>
+	        <xsd:simpleType name="modePay">
+	            <xsd:restriction base="xsd:string">
+	                <xsd:enumeration value="BancoChile"/>
+	                <xsd:enumeration value="BancoSantander"/>
+	                <xsd:enumeration value="WebPay"/>
+	                <xsd:enumeration value="WebPay"/>
+	                <xsd:enumeration value="TarjetaRipley"/>
+	            </xsd:restriction>
+	        </xsd:simpleType>
+	        <xsd:simpleType name="source">
+	            <xsd:restriction base="xsd:string">
+	                <xsd:enumeration value="OJ"/>
+	                <xsd:enumeration value="SMART"/>
+	            </xsd:restriction>
+	        </xsd:simpleType>
+	    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="onlinePayWSRequest">
+    <wsdl:part name="DefaultInput" element="onlinePayRequest"/>
+  </wsdl:message>
+  <wsdl:message name="onlinePayWSResponse">
+    <wsdl:part name="DefaultOutput" element="onlinePayResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="onlinePayWSPortType">
+    <wsdl:operation name="onlinePayWS">
+      <wsdl:input message="tns:onlinePayWSRequest"/>
+      <wsdl:output message="tns:onlinePayWSResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="onlinePayWSSOAPBinding" type="tns:onlinePayWSPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="onlinePayWS">
+      <soap:operation soapAction="urn:botonPagoPP/process/onlinePayWS:onlinePayWSPortType:onlinePayWSRequest"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="onlinePayWSService">
+    <wsdl:port name="onlinePayWSPort" binding="tns:onlinePayWSSOAPBinding">
+      <soap:address location="http://192.168.254.65:8080/process/onlinePayWS"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

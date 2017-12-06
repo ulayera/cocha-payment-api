@@ -7,7 +7,7 @@ const itauServices = require('../services/ItauService');
 const erpServices = require('../services/ErpService');
 const userSessionModel = require('../models/redis/UserSession');
 
-// const webpayServices = require('../services/WebpayService');
+const webpayServices = require('../services/WebpayService');
 
 async function getPaymentSession(ctx) {
 	let paymentSessionData = await sessionPaymentServices.get(ctx);

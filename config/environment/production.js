@@ -2,6 +2,7 @@
 
 module.exports = {
 	appName: 'PAYMENTS',
+	commerceCode: '597027395651',
 	path: {
 		itau:{
 			validateRut: 'http://itau20apiprep.clop.cl/ValidaRutCanje',
@@ -14,14 +15,13 @@ module.exports = {
 			requestExchange: 'http://itau20apiprep.clop.cl/RealizarCanje',
 			cancelPreExchange: 'http://itau20apiprep.clop.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId'			
 		},
-		webpay: {
-			setPayment: 'http://192.168.254.65:8080/process/onlinePayWS?wsdl',
-			getPaymentStatus: 'http://192.168.254.65:8080/process/getPayStatusWS?wsdl',
-			processPayment: 'http://200.27.156.137/Boton_Pago_PP/onlinePay.asp?token=:token'
+		webpay: { //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
+			setPayment: './resources/onlinePayWS-prod.wsdl', // 'http://192.168.254.66:8080/process/onlinePayWS?wsdl',
+			getPaymentStatus: './resources/getPayStatusWS-prod.wsdl', //'http://192.168.254.66:8080/process/getPayStatusWS?wsdl',
+			processPayment: 'www1.cocha.com/Boton_Pago_PP/onlinePay.asp?token=:token'
 		},
-		erp:{
-			//redeem:'http://192.168.254.65:8080/process/canjeServiceWS?wsdl'
-			redeem: './resources/canjeServiceWS.wsdl'
+		erp:{ //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
+			redeem: './resources/canjeServiceWS-prod.wsdl' // 'http://192.168.254.66:8080/process/canjeServiceWS?wsdl'
 		}
 	},
 	security: {

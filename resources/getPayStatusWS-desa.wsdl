@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="urn:botonPagoPP/process/getPayStatusWS" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="urn:botonPagoPP/process/getPayStatusWS" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:botonPagoPP/process/getPayStatusWS">
+	        <xsd:element name="getPayStatusRequest">
+	            <xsd:complexType>
+	                <xsd:sequence>
+	                    <xsd:element name="token" type="xsd:string"/>
+	                </xsd:sequence>
+	            </xsd:complexType>
+	        </xsd:element>
+	        <xsd:element name="getPayStatusResponse">
+	            <xsd:complexType>
+	                <xsd:sequence>
+	                    <xsd:element name="code" type="xsd:string"/>
+	                    <xsd:element name="message" type="xsd:string"/>
+	                    <xsd:element name="error" type="xsd:string"/>
+	                    <xsd:element name="charges">
+	                        <xsd:complexType>
+	                            <xsd:sequence>
+	                                <xsd:element maxOccurs="6" minOccurs="1" name="charge">
+	                                    <xsd:complexType>
+	                                        <xsd:sequence>
+	                                            <xsd:element name="codigoAutorizacion" type="xsd:string"/>
+	                                            <xsd:element name="status" type="xsd:string"/>
+	                                            <xsd:element name="fechaAprobacion" type="xsd:string"/>
+	                                            <xsd:element name="medioPago" type="xsd:string"/>
+	                                            <xsd:element name="monto" type="xsd:string"/>
+	                                            <xsd:element name="cuotas" type="xsd:string"/>
+	                                            <xsd:element name="numeroOperacion" type="xsd:string"/>
+	                                            <xsd:element name="marcaTC" type="xsd:string"/>
+	                                            <xsd:element name="numeroTarjeta" type="xsd:string"/>
+	                                            <xsd:element name="expTarjeta" type="xsd:string"/>
+	                                            <xsd:element name="tipoPago" type="xsd:string"/>
+	                                            <xsd:element name="token" type="xsd:string"/>
+	                                            <xsd:element name="idCocha" type="xsd:string"/>
+	                                        </xsd:sequence>
+	                                    </xsd:complexType>
+	                                </xsd:element>
+	                            </xsd:sequence>
+	                        </xsd:complexType>
+	                    </xsd:element>
+	                </xsd:sequence>
+	            </xsd:complexType>
+	        </xsd:element>
+	    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="getPayStatusWSRequest">
+    <wsdl:part name="DefaultInput" element="getPayStatusRequest"/>
+  </wsdl:message>
+  <wsdl:message name="getPayStatusWSResponse">
+    <wsdl:part name="DefaultOutput" element="getPayStatusResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="getPayStatusWSPortType">
+    <wsdl:operation name="getPayStatusWS">
+      <wsdl:input message="tns:getPayStatusWSRequest"/>
+      <wsdl:output message="tns:getPayStatusWSResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="getPayStatusWSSOAPBinding" type="tns:getPayStatusWSPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="getPayStatusWS">
+      <soap:operation soapAction="urn:botonPagoPP/process/getPayStatusWS:getPayStatusWSPortType:getPayStatusWSRequest"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="getPayStatusWSService">
+    <wsdl:port name="getPayStatusWSPort" binding="tns:getPayStatusWSSOAPBinding">
+      <soap:address location="http://192.168.254.65:8080/process/getPayStatusWS"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
