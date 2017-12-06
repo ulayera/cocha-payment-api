@@ -28,19 +28,20 @@ function paymentAnalysis(_data){
 async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
     //safety checks
 	let paymentData = await paymentModel.getBySessionCpnr(_sessionToken,_cpnr);
+	/*
 	if(paymentData.business){
 		throw {
 			code:"BusinessAlreadyAssigned",
 			business:paymentData.business
 		};
-	}
+	}*/
 	let payments = paymentAnalysis(paymentData);
 	if(payments.isConsistent){
 		if(payments.isPaid){
-			//paymentData.business = _businessNumber;
+			paymentData.business = _businessNumber;
 			var payment = new paymentModel.model(paymentData);
 			await paymentModel.save(payment);
-			return parsePaymentsRecords(payments.records);		
+			return parsePaymentsRecords(payments.records,paymentData.business);		
 		} else {
 			throw {
 				code:"PaidAmountsDontMatch",
@@ -118,7 +119,7 @@ async function checkTransaction(_sessionToken,_cpnr){
 	let payments = paymentAnalysis(paymentData);
 	if(payments.isConsistent){
 		if(payments.isPaid){
-			return parsePaymentsRecords(payments.records,paymentData.business,'extraPaymentData');		
+			return parsePaymentsRecords(payments.records,paymentData.business);		
 		} else {
 			throw {
 				code:"PaidAmountsDontMatch",
