@@ -285,17 +285,6 @@ async function cancelPreExchange(_ctx) {
 	return data;
 }
 
-module.exports = {
-	validateRut: validateRut,
-	generateDynamicKey: generateDynamicKey,
-    checkDynamicKey: checkDynamicKey,
-	startSession: startSession,
-	validateSessionFlow: validateSessionFlow,
-	requestPreExchange: requestPreExchange,
-	validateClient: validateClient,
-	requestExchange: requestExchange,
-	cancelPreExchange:cancelPreExchange
-};
 
 function getErrorByType(_meta) {
 	let status = Number(_meta.code);
@@ -326,3 +315,17 @@ function getErrorByType(_meta) {
 		data: _meta
 	};
 }
+
+
+module.exports = {
+	validateRut: validateRut,
+	generateDynamicKey: generateDynamicKey,
+    checkDynamicKey: checkDynamicKey,
+	startSession: startSession,
+	validateSessionFlow: validateSessionFlow,
+	requestPreExchange: requestPreExchange,
+	validateClient: validateClient,
+	requestExchange: requestExchange,
+	cancelPreExchange:cancelPreExchange
+};
+

@@ -80,6 +80,11 @@ module.exports = {
 		method: 'GET' ,
 		controller: 'ErpController',
 		action: 'checkTransaction'
+	},
+	'/test' : {
+		method: 'GET' ,
+		controller: 'ItauController',
+		action: 'test'
 	}
 };
 

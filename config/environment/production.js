@@ -3,6 +3,22 @@
 module.exports = {
 	appName: 'PAYMENTS',
 	commerceCode: '597027395651',
+	states:{
+		 paid:'PAGADO'
+		,closed:'CERRADO'
+		,pending:'PENDIENTE'
+		,failed:'FALLO'
+	},
+	codes:{
+		currency:{
+			 clp:'CLP'
+			,usd:'USD'
+		},
+		payment:{
+			 webpay:'WEBPAY'
+			,itau:'ITAU'
+		}
+	},
 	path: {
 		itau:{
 			validateRut: 'http://itau20apiprep.clop.cl/ValidaRutCanje',
@@ -61,6 +77,6 @@ module.exports = {
 		database: process.env.MONGODB_DB || 'local',
 		username: process.env.MONGODB_USER || 'payment',
 		password: process.env.MONGODB_PASS || 'payment1234',
-		ttlCron:600		
+		ttlCron:1200		
 	}
 };

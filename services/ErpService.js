@@ -134,9 +134,32 @@ async function checkTransaction(_sessionToken,_cpnr){
 	}
 }
 
+async function checkPendingPayments(){
+
+	let currentTimestamp = moment().unix();
+    let failedPaymentTransactions = await paymentModel.getAllBy({ $and : [
+        { $or : [{state:Koa.config.states.failed},{state:Koa.config.states.pending}] },
+        { processed: 0 },
+        { ttl : { $lt :currentTimestamp }}
+    ]});
+    //liberate points
+
+
+    let failedErpTransactiones = await paymentModel.getAllBy({ $and : [
+        { {state:Koa.config.states.paid}] },
+        { processed: 0 },
+        { ttl : { $lt :currentTimestamp }}
+    ]});
+	//retry smart
+	//send a warning if smart failed
+
+	return failedTransactions;
+}
+
 module.exports = {
 	 assignTransaction:assignTransaction
 	,addStatus:addStatus
 	,informPayment:informPayment
 	,checkTransaction:checkTransaction
+	,checkPendingPayments:checkPendingPayments
 }   
