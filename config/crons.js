@@ -2,9 +2,9 @@
 /* jshint strict: false, esversion: 6 */
 
 module.exports = {
-	// job: {
-	// 	time: '* * * * *',
-	// 	service: '',
-	// 	action: ''
-	// }
+	//checkPendingPayments: {
+	//		time: '*/1 * * * *',
+		//service: 'ItauService',
+		//action: 'checkPendingPayments'
+	//}	
 };

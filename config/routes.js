@@ -76,10 +76,15 @@ module.exports = {
 		controller: 'ErpController',
 		action: 'assignTransaction'
 	},
-	'/checkStatus/:sessionToken/:cpnr' : {
+	'/checkStatus/:sessionToken/:xpnr' : {
 		method: 'GET' ,
 		controller: 'ErpController',
 		action: 'checkTransaction'
+	},
+	'/test' : {
+		method: 'GET' ,
+		controller: 'ItauController',
+		action: 'test'
 	}
 };
 

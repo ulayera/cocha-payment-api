@@ -12,7 +12,7 @@ function paymentAnalysis(_data){
 	let consistencyCount = 0;
 	_.forEach(paidRecords,function(value){
 	  let existsMatch = _.find(otherRecords,function(o){
-	  	return o.id === value.id && o.amount === value.amount && o.transaction_type == value.transaction_type && o.status === 'PENDIENTE';
+	  	return o.id === value.id && o.amount === value.amount && o.method == value.method && o.status === 'PENDIENTE';
 	  })
 	  if(existsMatch) {
 	  	consistencyCount++;
@@ -25,9 +25,9 @@ function paymentAnalysis(_data){
 	};
 }
 
-async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
+async function assignTransaction(_sessionToken,_xpnr,_businessNumber) {
     //safety checks
-	let paymentData = await paymentModel.getBySessionCpnr(_sessionToken,_cpnr);
+	let paymentData = await paymentModel.getBySessionXpnr(_sessionToken,_xpnr);
 	/*
 	if(paymentData.business){
 		throw {
@@ -56,7 +56,7 @@ async function assignTransaction(_sessionToken,_cpnr,_businessNumber) {
 	}
 }
 
-async function addStatus(_sessionId,_status,_type,_currency,_paymentId, _amount, _info, _generalStatus){
+async function addStatus(_sessionId,_status,_type,_method,_currency,_paymentId, _amount, _info, _generalStatus){
 	let data = await paymentModel.get(_sessionId);
 	if(_generalStatus) {
 		data.state = _generalStatus;
@@ -64,7 +64,14 @@ async function addStatus(_sessionId,_status,_type,_currency,_paymentId, _amount,
 		data.state = _status;
 	}
 	data.status.push({
-		id:_paymentId,transaction_type:_type,currency:_currency,status:_status,date:moment().toDate(),amount:_amount,info:_info
+		 id:_paymentId
+		,transaction_type:_type
+		,method:_method
+		,currency:_currency
+		,status:_status
+		,date:moment().toDate()
+		,amount:_amount
+		,info:_info
 	});
     var payment = new paymentModel.model(data);
     return await paymentModel.save(payment);	
@@ -76,6 +83,7 @@ function parsePaymentsRecords(_records,_businessNumber) {
 	_.forEach(_records,function(value){
 		let data = {
 			 type: value.transaction_type
+			,method: value.method
 			,amount: value.amount
 			,currency: value.currency
 			,info: value.info
@@ -94,7 +102,7 @@ async function informPayment(_sessionId){
 	let params = {
 		 TOKEN:_sessionId
 		,EMAIL:data.email
-		,CPNR:data.cpnr
+		,CPNR:data.xpnr
 	};
 
 	let response;
@@ -107,9 +115,9 @@ async function informPayment(_sessionId){
 	return response;
 }
 
-async function checkTransaction(_sessionToken,_cpnr){
+async function checkTransaction(_sessionToken,_xpnr){
     //safety checks
-	let paymentData = await paymentModel.getBySessionCpnr(_sessionToken,_cpnr);
+	let paymentData = await paymentModel.getBySessionXpnr(_sessionToken,_xpnr);
 	if(!paymentData.business){
 		throw {
 			code:"BusinessNotAssigned"
@@ -134,9 +142,33 @@ async function checkTransaction(_sessionToken,_cpnr){
 	}
 }
 
+async function checkPendingPayments(){
+	let currentTimestamp = moment().unix();
+    let failedPaymentTransactions = await paymentModel.getAllBy({ $and : [
+        { $or : [{state:Koa.config.states.failed},{state:Koa.config.states.pending}] },
+        { processed: 0 },
+        { ttl : { $lt :currentTimestamp }}
+    ]});
+    //unblock points
+    let failedErpTransactions = await paymentModel.getAllBy({ $and : [
+        { state:Koa.config.states.paid },
+        { processed: 0 },
+        { ttl : { $lt :currentTimestamp }}
+    ]});
+	//retry smart
+	//send a warning if smart failed
+	//put a processed = 1 mark in the document
+	console.log("failedpayment",failedPaymentTransactions.length);
+	console.log("failederp",failedErpTransactions.length);	
+	throw {};
+
+	return failedTransactions;
+}
+
 module.exports = {
 	 assignTransaction:assignTransaction
 	,addStatus:addStatus
 	,informPayment:informPayment
 	,checkTransaction:checkTransaction
+	,checkPendingPayments:checkPendingPayments
 }   

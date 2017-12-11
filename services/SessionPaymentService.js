@@ -27,11 +27,12 @@ async function create(_ctx) {
 	};
 
   var payment = new paymentModel.model({
-    cpnr:session.data.cpnr,
-    xpnr:session.data.cochaCode,
-    total:session.data.price,
-    ttl:moment().unix() + Koa.config.mongoConf.ttlCron,
-    email:session.data.contact
+     cpnr:session.data.cpnr
+    ,xpnr:session.data.cochaCode
+    ,total:session.data.price
+    ,ttl:moment().unix() + Koa.config.mongoConf.ttlCron
+    ,email:session.data.contact
+    ,processed:0
   });
   payment = await paymentModel.save(payment);
   let sessionId = payment._id;

@@ -150,7 +150,7 @@ async function executePayment(ctx) {
 		delete preExchangeData.spentPoints;
 		userData.preExchange = preExchangeData;
 
-		await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
+		await erpServices.addStatus(userData.paymentSession, Koa.config.states.pending, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp , userData.preExchange.id, userData.spentPoints, {
 			rut:userData.rut + '-' + userData.dv
 		});
 		
@@ -166,7 +166,7 @@ async function executePayment(ctx) {
 				ctx.params.cpnr = userData.cpnr;
 				let exchangeData = await itauServices.requestExchange(ctx);
 
-				await erpServices.addStatus(ctx.params.paymentSessionCode, "PAGADO", "ITAU", "CLP", preExchangeData.id,preExchangeData.spentPoints, {
+				await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id,preExchangeData.spentPoints, {
 						 rut: ctx.params.rut + '-' + ctx.params.dv
 						,paymentId: exchangeData.id
 					});
@@ -176,7 +176,7 @@ async function executePayment(ctx) {
 				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode);
 
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK'){
-					await erpServices.addStatus(ctx.params.paymentSessionCode, "CERRADO", "ITAU", "CLP", preExchangeData.id,preExchangeData.spentPoints, {
+					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id,preExchangeData.spentPoints, {
 						 rut: ctx.params.rut + '-' + ctx.params.dv
 						,paymentId:exchangeData.id
 					});
@@ -186,7 +186,7 @@ async function executePayment(ctx) {
 				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-				await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
+				await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
 					rut: ctx.params.rut + '-' + ctx.params.dv
 				});
 				
@@ -207,12 +207,12 @@ async function executePayment(ctx) {
 				userData.extraExchange = paymentData;
 				userData.extraExchange.paymentTry = 1;
 
-				await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {});
+				await erpServices.addStatus(userData.paymentSession, Koa.config.states.pending, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment, {});
 			} catch (err) {
 				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-				await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
+				await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
 					rut: ctx.params.rut + '-' + ctx.params.dv
 				});
 				throw err;
@@ -268,21 +268,21 @@ async function checkPayment(ctx) {
 		} catch (err) {
 			ctx.params.preExchangeId = userData.preExchange.id;
 			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-			await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
+			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
 				rut: userData.rut + '-' + userData.dv
 			});
 
-			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {});
+			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment, {});
 			await sessionPaymentServices.remove(ctx);
 			throw err;
 		} 
 		
 		if (paymentStatusData.status === 'Pending') {	
-			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {});
+			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment, {});
 			userData.extraExchange.tokenWebPay = paymentData.tokenWebPay;
 			userData.extraExchange.url = paymentData.url;
 			userData.extraExchange.paymentTry++;
-			await erpServices.addStatus(userData.paymentSession, "PENDIENTE", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {});
+			await erpServices.addStatus(userData.paymentSession, Koa.config.states.pending, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment, {});
 
 			await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 
@@ -291,7 +291,7 @@ async function checkPayment(ctx) {
 				url: userData.extraExchange.url
 			};
 		} else {
-			await erpServices.addStatus(userData.paymentSession, "PAGADO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment,{
+			await erpServices.addStatus(userData.paymentSession, Koa.config.states.paid, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment,{
 				paymentData:paymentStatusData
 			});
 
@@ -307,7 +307,7 @@ async function checkPayment(ctx) {
 				let exchangeData = await itauServices.requestExchange(ctx);
 				userData.postExchange = exchangeData;	
 
-				await erpServices.addStatus(userData.paymentSession, "PAGADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
+				await erpServices.addStatus(userData.paymentSession, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
 					 rut: userData.rut + '-' + userData.dv
 					,paymentId:exchangeData.id
 				});
@@ -315,7 +315,7 @@ async function checkPayment(ctx) {
 	
 				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode); //Necesita un await?
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK'){
-					await erpServices.addStatus(userData.paymentSession, "CERRADO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
+					await erpServices.addStatus(userData.paymentSession, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
 						 rut: userData.rut + '-' + userData.dv
 						,paymentId:exchangeData.id
 					});
@@ -359,10 +359,10 @@ async function cancelPayment(ctx) {
 			ctx.params.dv = userData.dv;
 			ctx.params.preExchangeId = userData.preExchange.id;
 			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-			await erpServices.addStatus(userData.paymentSession, "FALLO", "ITAU", "CLP", userData.preExchange.id, userData.spentPoints, {
+			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
 				rut: userData.rut + '-' + userData.dv
 			});
-			await erpServices.addStatus(userData.paymentSession, "FALLO", "WEBPAY", "CLP", userData.extraExchange.tokenWebPay, userData.coPayment, {});			
+			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment, {});			
 		}
 		await sessionPaymentServices.remove(ctx);
 		ctx.body = {
@@ -379,6 +379,8 @@ async function cancelPayment(ctx) {
 	}
 }
 
+
+
 module.exports = {
 	getPaymentSession: getPaymentSession,
 	loadClient: loadClient,
@@ -386,5 +388,10 @@ module.exports = {
 	validateDynamicKey: validateDynamicKey,
 	executePayment: executePayment,
 	checkPayment: checkPayment,
-	cancelPayment: cancelPayment
+	cancelPayment: cancelPayment,
+	test:test
 };
+
+async function test(ctx){
+	ctx.body = await erpServices.checkPendingPayments();
+}
