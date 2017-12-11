@@ -7,6 +7,7 @@ var schema = new mongoose.Schema({
     status: [{
     	id:String
        ,transaction_type:String
+       ,method:String
        ,currency:String
        ,status:String
        ,date:Date
@@ -21,8 +22,8 @@ var schema = new mongoose.Schema({
 });
 
 
-async function getBySessionCpnr(_id,_cpnr){
-	return await this.get({'_id':_id,'cpnr':_cpnr});
+async function getBySessionXpnr(_id,_xpnr){
+	return await this.get({'_id':_id,'xpnr':_xpnr});
 }
 
 
@@ -104,7 +105,7 @@ async function save(_object){
 
 module.exports = {
 	model:mongoose.model('Payment', schema, 'payment'),
-	getBySessionCpnr:getBySessionCpnr,
+	getBySessionXpnr:getBySessionXpnr,
 	get:get,
 	save:save,
 	getAllBy:getAllBy

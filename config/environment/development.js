@@ -14,9 +14,14 @@ module.exports = {
 			 clp:'CLP'
 			,usd:'USD'
 		},
-		payment:{
+		method:{
 			 webpay:'WEBPAY'
 			,itau:'ITAU'
+		},
+		type:{
+			 online:'ONLINE'
+			,points:'EXCHANGE'
+			,hostToHost:'H2H'
 		}
 	},
 	path: {
