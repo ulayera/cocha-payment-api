@@ -81,6 +81,11 @@ module.exports = {
 		controller: 'ErpController',
 		action: 'checkTransaction'
 	},
+	'/getPayment/:sessionToken/:xpnr' : {
+		method: 'GET' ,
+		controller: 'ErpController',
+		action: 'getPaymentData'
+	},
 	'/test' : {
 		method: 'GET' ,
 		controller: 'ItauController',

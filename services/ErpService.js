@@ -142,6 +142,27 @@ async function checkTransaction(_sessionToken,_xpnr){
 	}
 }
 
+
+async function getPaymentData(_sessionToken,_xpnr){
+	let paymentData = await paymentModel.getBySessionXpnr(_sessionToken,_xpnr);
+	let payments = paymentAnalysis(paymentData);
+	if(payments.isConsistent){
+		if(payments.isPaid){
+			return parsePaymentsRecords(payments.records,paymentData.business);		
+		} else {
+			throw {
+				code:"PaidAmountsDontMatch",
+				records:payments.records
+			};
+		}
+	} else {
+		throw {
+			code:"DbConsistencyError",
+			records:payments.records
+		};
+	}
+}
+
 async function checkPendingPayments(){
 	let currentTimestamp = moment().unix();
     let failedPaymentTransactions = await paymentModel.getAllBy({ $and : [
@@ -171,4 +192,5 @@ module.exports = {
 	,informPayment:informPayment
 	,checkTransaction:checkTransaction
 	,checkPendingPayments:checkPendingPayments
+	,getPaymentData:getPaymentData
 }   
