@@ -81,8 +81,8 @@ module.exports = {
 		controller: 'ErpController',
 		action: 'checkTransaction'
 	},
-	'/test': {
-		method: 'GET',
+	'/test' : {
+		method: 'GET' ,
 		controller: 'ItauController',
 		action: 'test'
 	}

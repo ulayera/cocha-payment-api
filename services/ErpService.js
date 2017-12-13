@@ -108,12 +108,19 @@ function parsePaymentsRecords(_records,_businessNumber) {
 	};
 }
 
-async function informPayment(_sessionId){
+async function informPayment(_sessionId,_info,_amount){
 	let data = await paymentModel.get(_sessionId);
 	let params = {
 		 TOKEN:_sessionId
 		,EMAIL:data.email
 		,CPNR:data.xpnr
+		,EXCHANGESINFO:[{
+			EXCHANGEINFO:{
+				 RUT:_info.rut
+				,AMOUNT:_amount
+				,PAYMENTID:_info.paymentId
+			}
+		}]
 	};
 
 	let response;
