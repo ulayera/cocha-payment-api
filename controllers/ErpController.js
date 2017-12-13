@@ -5,7 +5,17 @@ const erpService = require('../services/ErpService');
 
 
 async function assignTransaction(ctx){
-	try{
+	try {
+		if (!ctx.params.xpnr || !ctx.params.businessNumber || !ctx.params.sessionToken)) {
+			throw {
+				status: 400,
+				message: {
+					code: 'ParamsError',
+					msg: "Parameters invalid : " + JSON.stringify(ctx.params)
+				}
+			};
+		}
+
 		let result = await erpService.assignTransaction(ctx.params.sessionToken,ctx.params.xpnr,ctx.params.businessNumber);
 		ctx.status = 200;
 		ctx.body = result;
@@ -46,6 +56,16 @@ async function assignTransaction(ctx){
 
 async function checkTransaction(ctx){
 	try{
+		if (!ctx.params.xpnr || !ctx.params.sessionToken)) {
+			throw {
+				status: 400,
+				message: {
+					code: 'ParamsError',
+					msg: "Parameters invalid : " + JSON.stringify(ctx.params)
+				}
+			};
+		}
+
 		let result = await erpService.checkTransaction(ctx.params.sessionToken,ctx.params.xpnr);
 		ctx.status = 200;
 		ctx.body = result;
