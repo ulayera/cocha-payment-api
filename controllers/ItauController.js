@@ -178,14 +178,13 @@ async function executePayment(ctx) {
 				let exchangeData = await itauServices.requestExchange(ctx);
 				userData.postExchange = exchangeData;
 
-				await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id,preExchangeData.spentPoints, info);
-
-				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode,info,preExchangeData.spentPoints);
-
 				let info = {
 					 rut: userData.rut + '-' + userData.dv
 					,paymentId:exchangeData.id
 				};
+				await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id,preExchangeData.spentPoints, info);
+
+				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode,info,preExchangeData.spentPoints);
 
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
 					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id,preExchangeData.spentPoints, info);
