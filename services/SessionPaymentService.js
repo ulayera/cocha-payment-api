@@ -33,7 +33,7 @@ async function create(_ctx) {
   	total: session.data.price,
   	ttl: moment().unix() + Koa.config.mongoConf.ttlCron,
   	email: session.data.contact,
-  	processed: 0
+  	processed: Koa.config.codes.processedFlag.open
   });
   payment = await paymentModel.save(payment);
   let sessionId = payment._id;

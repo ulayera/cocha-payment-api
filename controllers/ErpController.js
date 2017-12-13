@@ -83,39 +83,8 @@ async function checkTransaction(ctx){
 	}
 }
 
-async function getPaymentData(ctx){
-	try{
-		let result = await erpService.getPaymentData(ctx.params.sessionToken,ctx.params.xpnr);
-		ctx.status = 200;
-		ctx.body = result;
-	} catch (err) {
-		console.log(JSON.stringify(err));
-		ctx.status = err.status || 500;
-		let detail = ((typeof err.message === 'object') ? err.message : JSON.stringify(err));
-		if(err.code === 'PaymentNotFound'){
-			throw {
-				status:ctx.status,
-				message:{
-					 code:"01"
-					,msg:"CPNR NO ENCONTRADO"
-					,detail:detail
-				}				
-			};
-		} else {
-			throw {
-				status:500,
-				message:{
-					 code:"03"
-					,msg:"ERROR INTERNO"
-					,detail:detail
-				}
-			};			
-		}
-	}
-}
 
 module.exports = {
 	 assignTransaction: assignTransaction
 	,checkTransaction: checkTransaction
-	,getPaymentData: getPaymentData
 };

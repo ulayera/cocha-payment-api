@@ -5,14 +5,15 @@ const paymentModel = require('../models/mongo/Payment');
 const soapServices = require('./SoapService');
 
 function paymentAnalysis(_data){
-	let paidRecords  = _.filter(_data.status,function(o){ return o.status === 'PAGADO';});
-	let otherRecords = _.filter(_data.status,function(o){ return o.status !== 'PAGADO';});
+
+	let paidRecords  = _.filter(_data.status,function(o){ return o.status === Koa.config.states.paid; });
+	let otherRecords = _.filter(_data.status,function(o){ return o.status !== Koa.config.states.paid; });
 	let total 		 = _.sumBy(paidRecords, function(o){ return parseFloat(o.amount); });
 	let amountMatch  = (total === parseFloat(_data.total))? true : false;
 	let consistencyCount = 0;
 	_.forEach(paidRecords,function(value){
 	  let existsMatch = _.find(otherRecords,function(o){
-	  	return o.id === value.id && o.amount === value.amount && o.method == value.method && o.status === 'PENDIENTE';
+	  	return o.id === value.id && o.amount === value.amount && o.method == value.method && o.status === Koa.config.states.pending;
 	  })
 	  if(existsMatch) {
 	  	consistencyCount++;
@@ -23,6 +24,11 @@ function paymentAnalysis(_data){
 		isConsistent: (consistencyCount == paidRecords.length && paidRecords.length > 0) ? true : false,
 		records: ((amountMatch) ? paidRecords : otherRecords)
 	};
+}
+
+async function isBusinessAssigned(_sessionToken) {
+	let paymentData = await paymentModel.get(_sessionToken);
+	return (paymentData.business ? true : false);
 }
 
 async function assignTransaction(_sessionToken,_xpnr,_businessNumber) {
@@ -73,6 +79,11 @@ async function addStatus(_sessionId,_status,_type,_method,_currency,_paymentId, 
 		,amount:_amount
 		,info:_info
 	});
+	
+	if(data.state === Koa.config.states.closed) {
+		data.processed = Koa.config.codes.processedFlag.closed;
+	}
+
     var payment = new paymentModel.model(data);
     return await paymentModel.save(payment);	
 }
@@ -143,25 +154,6 @@ async function checkTransaction(_sessionToken,_xpnr){
 }
 
 
-async function getPaymentData(_sessionToken,_xpnr){
-	let paymentData = await paymentModel.getBySessionXpnr(_sessionToken,_xpnr);
-	let payments = paymentAnalysis(paymentData);
-	if(payments.isConsistent){
-		if(payments.isPaid){
-			return parsePaymentsRecords(payments.records,paymentData.business);		
-		} else {
-			throw {
-				code:"PaidAmountsDontMatch",
-				records:payments.records
-			};
-		}
-	} else {
-		throw {
-			code:"DbConsistencyError",
-			records:payments.records
-		};
-	}
-}
 
 async function checkPendingPayments(){
 	let currentTimestamp = moment().unix();
@@ -192,5 +184,5 @@ module.exports = {
 	,informPayment:informPayment
 	,checkTransaction:checkTransaction
 	,checkPendingPayments:checkPendingPayments
-	,getPaymentData:getPaymentData
+	,isBusinessAssigned:isBusinessAssigned
 }   

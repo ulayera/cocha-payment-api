@@ -162,7 +162,9 @@ async function executePayment(ctx) {
 		await erpServices.addStatus(userData.paymentSession, Koa.config.states.pending, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp , userData.preExchange.id, userData.spentPoints, {
 			rut:userData.rut + '-' + userData.dv
 		});
-		
+
+		let responseErpStatus = null;		
+
 		if (userData.spentPoints === userData.price) {
 			try {
 				userData.extraExchange = null;
@@ -183,11 +185,21 @@ async function executePayment(ctx) {
 
 				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode);
 
-				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK'){
-					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id,preExchangeData.spentPoints, {
-						 rut: ctx.params.rut + '-' + ctx.params.dv
-						,paymentId:exchangeData.id
-					});
+				let info = {
+					 rut: userData.rut + '-' + userData.dv
+					,paymentId:exchangeData.id
+				};
+
+				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
+					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id,preExchangeData.spentPoints, info);
+				} else {
+					let isAssigned = erpServices.isBusinessAsigned(ctx.params.paymentSessionCode);
+					if (isAssigned) {
+						await erpServices.addStatus(userData.paymentSession, Koa.config.states.erpPending, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id, preExchangeData.spentPoints, info);
+					} else {
+						await erpServices.addStatus(userData.paymentSession, Koa.config.states.erpFail, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id, preExchangeData.spentPoints, info);
+						responseErpStatus = 'ErpError';
+					}
 				}
 
 			} catch (err) {
@@ -230,7 +242,7 @@ async function executePayment(ctx) {
 		await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 
 		ctx.body = {
-			status: (userData.extraExchange) ? 'Pending' : 'Complete',
+			status: ((userData.extraExchange) ? 'Pending' : ( responseErpStatus ? responseErpStatus : 'Complete')),
 			points: userData.availablePoints,
 			url: (userData.extraExchange) ? userData.extraExchange.url : null
 		};
@@ -301,6 +313,8 @@ async function checkPayment(ctx) {
 				url: userData.extraExchange.url
 			};
 		} else {
+			paymentStatusData.commerceCode = params.commerceCode;
+
 			await erpServices.addStatus(userData.paymentSession, Koa.config.states.paid, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment,{
 				paymentData:paymentStatusData
 			});
@@ -323,18 +337,29 @@ async function checkPayment(ctx) {
 				});
 				await sessionPaymentServices.remove(ctx);
 	
-				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode); //Necesita un await?
-				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK'){
-					await erpServices.addStatus(userData.paymentSession, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
-						 rut: userData.rut + '-' + userData.dv
-						,paymentId:exchangeData.id
-					});
-				}
-
 				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
-				
+	
+				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode);
+				let responseStatus = '';
+				let info = {
+					 rut: userData.rut + '-' + userData.dv
+					,paymentId:exchangeData.id
+				};
+				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
+					await erpServices.addStatus(userData.paymentSession, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+					responseStatus = 'Complete';
+				} else {
+					let isAssigned = erpServices.isBusinessAsigned(ctx.params.paymentSessionCode);
+					if (isAssigned) {
+						await erpServices.addStatus(userData.paymentSession, Koa.config.states.erpPending, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+						responseStatus = 'Complete';
+					} else {
+						await erpServices.addStatus(userData.paymentSession, Koa.config.states.erpFail, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+						responseStatus = 'ErpError';
+					}
+				}
 				ctx.body = {
-					status: 'Complete',
+					status: responseStatus,
 					url: null
 				};
 			} catch (err) {

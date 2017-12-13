@@ -10,7 +10,9 @@ module.exports = {
 		paid: 'PAGADO',
 		closed: 'CERRADO',
 		pending: 'PENDIENTE',
-		failed: 'FALLO'
+		failed: 'FALLO',
+		erpPending: 'PENDIENTE-SMART',
+		erpFail: 'FALLO-SMART'		
 	},
 	codes: {
 		currency: {
@@ -25,6 +27,10 @@ module.exports = {
 			online: 'ONLINE',
 			points: 'EXCHANGE',
 			hostToHost: 'H2H'
+		},
+		processedFlag: {
+			open:0,
+			closed:2
 		}
 	},
 	path: {
