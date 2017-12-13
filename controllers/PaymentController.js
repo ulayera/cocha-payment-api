@@ -8,6 +8,9 @@ async function createPayment(ctx) {
   if (!_.isString(ctx.params.ccode) || _.isEmpty(ctx.params.ccode)) {
     errors.push("Parameter 'ccode' is invalid: " + ctx.params.ccode);
   }
+  if (!_.isString(ctx.params.paymentSrc) || _.isEmpty(ctx.params.paymentSrc)) {
+    errors.push("Parameter 'paymentSrc' is invalid: " + ctx.params.paymentSrc);
+  }
   if (!_.isString(ctx.params.title) || _.isEmpty(ctx.params.title)) {
     errors.push("Parameter 'title' is invalid: " + ctx.params.title);
   }
@@ -50,7 +53,7 @@ async function createPayment(ctx) {
 	ctx.body = {
     status: 'Complete',
     paymentToken: paymentSessionId,
-    url: 'http://xxxxxxxx/' + paymentSessionId
+    url: Koa.config.paymentWappUrl.replace(':sessionid', paymentSessionId)
 	};
 }
 

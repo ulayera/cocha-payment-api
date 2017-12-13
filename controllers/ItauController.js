@@ -5,7 +5,6 @@ const sessionPaymentServices = require('../services/SessionPaymentService');
 const itauServices = require('../services/ItauService');
 const erpServices = require('../services/ErpService');
 const userSessionModel = require('../models/redis/UserSession');
-
 const webpayServices = require('../services/WebpayService');
 
 async function getPaymentSession(ctx) {
@@ -13,6 +12,7 @@ async function getPaymentSession(ctx) {
 
 	ctx.body = {
 		status: 'Complete',
+		source: paymentSessionData.data.paymentSource,
 		product: paymentSessionData.data.productName,
 		price: paymentSessionData.data.price,
 		origin: paymentSessionData.data.origin,
@@ -129,6 +129,15 @@ async function executePayment(ctx) {
 	let userData = ctx.authSession.userSessionData;
 	ctx.params.paymentSessionCode = userData.paymentSession;
 	if (await sessionPaymentServices.isValidAttempt(ctx) && ctx.authType === 'sessionOpen') {
+		if (userData.preExchange) {
+			throw {
+				status: 400,
+				message: {
+					code: 'InProcessError',
+					msg: "Payment in process, it is not possible to make a new payment"
+				}
+			};
+		}
 		if (!_.isNumber(ctx.params.spendingPoint)) {
 			throw {
 				status: 400,
@@ -165,13 +174,12 @@ async function executePayment(ctx) {
 				ctx.params.productName = userData.productName;
 				ctx.params.cpnr = userData.cpnr;
 				let exchangeData = await itauServices.requestExchange(ctx);
+				userData.postExchange = exchangeData;
 
 				await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id,preExchangeData.spentPoints, {
-						 rut: ctx.params.rut + '-' + ctx.params.dv
-						,paymentId: exchangeData.id
-					});
-
-				userData.postExchange = exchangeData;
+						rut: ctx.params.rut + '-' + ctx.params.dv
+					,paymentId: exchangeData.id
+				});
 
 				let erpResponse = erpServices.informPayment(ctx.params.paymentSessionCode);
 
@@ -197,6 +205,7 @@ async function executePayment(ctx) {
 		} else {
 			try {
 				let params = {
+					commerceCode: Koa.config.commerceCodes.cocha, //Puede ser mas de uno en el futuro
 					amount: userData.price - userData.spentPoints,
 					cochaCode: userData.cochaCode,
 					holderName: userData.name,
@@ -257,6 +266,7 @@ async function checkPayment(ctx) {
 					};
 				} else {
 					let params = {
+						commerceCode: Koa.config.commerceCodes.cocha, //Puede ser mas de uno en el futuro
 						amount: userData.coPayment,
 						cochaCode: userData.cochaCode,
 						holderName: userData.name,

@@ -16,7 +16,7 @@ async function getPaymentData(_paymentParams) {
     commerceName: Koa.config.appName,
     charges: {
       charge: {
-        storeCode: Koa.config.commerceCode,
+        storeCode: _paymentParams.commerceCode,
         storeOC: _paymentParams.cochaCode,
         storeCost: String(_paymentParams.amount)
       }

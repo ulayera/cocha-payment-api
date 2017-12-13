@@ -2,7 +2,7 @@
 /* jshint strict: false, esversion: 6 */
 
 module.exports = {
-	'/setPayment' : {
+	'/setPayment': {
 		method: 'POST',
 		controller: 'PaymentController',
 		action: 'createPayment',
@@ -26,16 +26,16 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'/sendDynamicKey' : {
-		method:	'GET',
+	'/sendDynamicKey': {
+		method: 'GET',
 		controller: 'ItauController',
-		action: 'sendDynamicKey', 
+		action: 'sendDynamicKey',
 		auth: {
 			strategy: 'paymentIntentionStrategy',
 			redirect: null
-		} 
+		}
 	},
-	'/validateDynamicKey' : {
+	'/validateDynamicKey': {
 		method: 'POST',
 		controller: 'ItauController',
 		action: 'validateDynamicKey',
@@ -44,52 +44,51 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'/executePayment' : {
-		method: 'POST' ,
+	'/executePayment': {
+		method: 'POST',
 		controller: 'ItauController',
 		action: 'executePayment',
 		auth: {
 			strategy: 'paymentIntentionStrategy',
 			redirect: null
-		} 
+		}
 	},
-	'/checkPayment' : { 
+	'/checkPayment': {
 		method: 'GET',
 		controller: 'ItauController',
 		action: 'checkPayment',
-		auth:  {
+		auth: {
 			strategy: 'paymentIntentionStrategy',
 			redirect: null
 		}
 	},
-	'/cancelPayment' : {
+	'/cancelPayment': {
 		method: 'GET',
 		controller: 'ItauController',
-		action: 'cancelPayment', 
+		action: 'cancelPayment',
 		auth: {
 			strategy: 'paymentIntentionStrategy',
 			redirect: null
-		} 
+		}
 	},
-	'/redeem' : {
-		method: 'POST' ,
+	'/redeem': {
+		method: 'POST',
 		controller: 'ErpController',
 		action: 'assignTransaction'
 	},
-	'/checkStatus/:sessionToken/:xpnr' : {
-		method: 'GET' ,
+	'/checkStatus/:sessionToken/:xpnr': {
+		method: 'GET',
 		controller: 'ErpController',
 		action: 'checkTransaction'
 	},
-	'/getPayment/:sessionToken/:xpnr' : {
-		method: 'GET' ,
+	'/getPayment/:sessionToken/:xpnr': {
+		method: 'GET',
 		controller: 'ErpController',
 		action: 'getPaymentData'
 	},
-	'/test' : {
-		method: 'GET' ,
+	'/test': {
+		method: 'GET',
 		controller: 'ItauController',
 		action: 'test'
 	}
 };
-

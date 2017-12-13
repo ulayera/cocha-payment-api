@@ -2,30 +2,33 @@
 
 module.exports = {
 	appName: 'PAYMENTS',
-	commerceCode: '597027395651',
-	states:{
-		 paid:'PAGADO'
-		,closed:'CERRADO'
-		,pending:'PENDIENTE'
-		,failed:'FALLO'
+	paymentWappUrl: 'https://pagos.cocha.com/:sessionid',
+	commerceCodes: {
+		cocha: '597027395651'
 	},
-	codes:{
-		currency:{
-			 clp:'CLP'
-			,usd:'USD'
+	states: {
+		paid: 'PAGADO',
+		closed: 'CERRADO',
+		pending: 'PENDIENTE',
+		failed: 'FALLO'
+	},
+	codes: {
+		currency: {
+			clp: 'CLP',
+			usd: 'USD'
 		},
-		method:{
-			 webpay:'WEBPAY'
-			,itau:'ITAU'
+		method: {
+			webpay: 'WEBPAY',
+			itau: 'ITAU'
 		},
-		type:{
-			 online:'ONLINE'
-			,points:'EXCHANGE'
-			,hostToHost:'H2H'
+		type: {
+			online: 'ONLINE',
+			points: 'EXCHANGE',
+			hostToHost: 'H2H'
 		}
 	},
 	path: {
-		itau:{
+		itau: {
 			validateRut: 'http://itau20apiprep.clop.cl/ValidaRutCanje',
 			generateDynamicKey: 'http://itau20apiprep.clop.cl/GeneraClaveDinamica',
 			checkDynamicKey: 'http://itau20apiprep.clop.cl/CompruebaClaveDinamica/:rut/:dv/:providerId/:dynamicKey/:dynamicKeyId',
@@ -34,14 +37,14 @@ module.exports = {
 			requestPreExchange: 'http://itau20apiprep.clop.cl/SolicitarPrecanje',
 			validateClient: 'http://itau20apiprep.clop.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
 			requestExchange: 'http://itau20apiprep.clop.cl/RealizarCanje',
-			cancelPreExchange: 'http://itau20apiprep.clop.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId'			
+			cancelPreExchange: 'http://itau20apiprep.clop.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId'
 		},
 		webpay: { //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
 			setPayment: './resources/onlinePayWS-prod.wsdl', // 'http://192.168.254.66:8080/process/onlinePayWS?wsdl',
 			getPaymentStatus: './resources/getPayStatusWS-prod.wsdl', //'http://192.168.254.66:8080/process/getPayStatusWS?wsdl',
 			processPayment: 'www1.cocha.com/Boton_Pago_PP/onlinePay.asp?token=:token'
 		},
-		erp:{ //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
+		erp: { //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
 			redeem: './resources/canjeServiceWS-prod.wsdl' // 'http://192.168.254.66:8080/process/canjeServiceWS?wsdl'
 		}
 	},
@@ -60,7 +63,7 @@ module.exports = {
 		enabled: true
 	},
 	redisConf: {
-		host: process.env.REDIS_HOST || 'mid-redis.cocha.com',
+		host: process.env.REDIS_HOST ||  'mid-redis.cocha.com',
 		port: parseInt(process.env.REDIS_PORT) || 6379,
 		db: parseInt(process.env.REDIS_DB) || 0,
 		expire: 60 * 60 * 24, // Seconds -> 24h
@@ -69,19 +72,19 @@ module.exports = {
 		expireUserSession: 60 * 25 // Seconds -> 25m
 	},
 	mysqlConf: {
-		host: process.env.MYSQL_HOST || '192.168.254.29',
+		host: process.env.MYSQL_HOST ||  '192.168.254.29',
 		port: parseInt(process.env.MYSQL_PORT) || 3306,
 		database: 'expackage',
-		username: process.env.MYSQL_USER || 'search-digital',
-		password: process.env.MYSQL_PASS || 'c0ch4.D1g1t4l',
+		username: process.env.MYSQL_USER ||  'search-digital',
+		password: process.env.MYSQL_PASS ||  'c0ch4.D1g1t4l',
 		// insecureAuth: true
 	},
 	mongoConf: {
-		host: process.env.MONGODB_HOST || 'mongo-db-desa.cocha.com',
+		host: process.env.MONGODB_HOST ||  'mongo-db-desa.cocha.com',
 		port: parseInt(process.env.MONGODB_PORT) || 27017,
 		database: process.env.MONGODB_DB || 'local',
 		username: process.env.MONGODB_USER || 'payment',
 		password: process.env.MONGODB_PASS || 'payment1234',
-		ttlCron:1200		
+		ttlCron: 1200
 	}
 };

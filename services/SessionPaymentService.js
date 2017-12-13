@@ -11,6 +11,7 @@ async function create(_ctx) {
 		data: {
       cpnr: _ctx.params.ccode + now.getFullYear() + (now.getMonth() + 1),      
       cochaCode: _ctx.params.ccode,
+      paymentSource: _ctx.params.paymentSrc,
       productName: _ctx.params.title,
       price: _ctx.params.clpPrice,
       origin: _ctx.params.origin,
@@ -27,12 +28,12 @@ async function create(_ctx) {
 	};
 
   var payment = new paymentModel.model({
-     cpnr:session.data.cpnr
-    ,xpnr:session.data.cochaCode
-    ,total:session.data.price
-    ,ttl:moment().unix() + Koa.config.mongoConf.ttlCron
-    ,email:session.data.contact
-    ,processed:0
+  	cpnr: session.data.cpnr,
+  	xpnr: session.data.cochaCode,
+  	total: session.data.price,
+  	ttl: moment().unix() + Koa.config.mongoConf.ttlCron,
+  	email: session.data.contact,
+  	processed: 0
   });
   payment = await paymentModel.save(payment);
   let sessionId = payment._id;

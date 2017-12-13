@@ -2,8 +2,10 @@
 /* jshint strict: false, esversion: 6 */
 
 const soap = require('soap');
+const uuidv4 = require('uuid/v4');
 
 const clients = {};
+const requestSummary = {};
 
 async function getClient(_url) {
   if (clients[_url]) {
@@ -14,6 +16,17 @@ async function getClient(_url) {
         if (err) {
           reject(err);
         } else {
+          client.on("response", function(body, response, eid) {
+            if (requestSummary[eid]) {
+              let LogObj = _.cloneDeep(requestSummary[eid]);
+              delete requestSummary[eid];
+
+              LogObj.resquest = response.request.body;
+              LogObj.reeponse = response.body;
+              Koa.log.info(JSON.stringify(LogObj));
+            }
+          });
+
           resolve(client);
         }
       });
@@ -25,13 +38,20 @@ async function getClient(_url) {
 async function callService(_uriWdsl, _method, _params) {
   let client = await getClient(_uriWdsl);
   return new Promise((resolve, reject) => {
-    client[_method](_params, (err, result) => {
+    let exchangeId = uuidv4();
+    requestSummary[exchangeId] = {
+      function: "SoapService:callService",
+      method: _method,
+      serviceUrl: _uriWdsl,
+      params: _params
+    };
+    client[_method](_params, (err, result, raw) => {
       if (err) {
         reject(err);
       } else {
         resolve(result);
       }
-    });
+    }, {exchangeId: exchangeId});
   });	
 }
 

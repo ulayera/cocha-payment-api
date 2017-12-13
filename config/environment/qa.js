@@ -2,35 +2,38 @@
 
 module.exports = {
 	appName: 'PAYMENTS-QA',
-	commerceCode: '597026016959',
-	states:{
-		 paid:'PAGADO'
-		,closed:'CERRADO'
-		,pending:'PENDIENTE'
-		,failed:'FALLO'
+	paymentWappUrl: 'http://pagos-qa.cocha.com/:sessionid',
+	commerceCodes: {
+		cocha: '597026016959'
 	},
-	codes:{
-		currency:{
-			 clp:'CLP'
-			,usd:'USD'
+	states: {
+		paid: 'PAGADO',
+		closed: 'CERRADO',
+		pending: 'PENDIENTE',
+		failed: 'FALLO'
+	},
+	codes: {
+		currency: {
+			clp: 'CLP',
+			usd: 'USD'
 		},
-		method:{
-			 webpay:'WEBPAY'
-			,itau:'ITAU'
+		method: {
+			webpay: 'WEBPAY',
+			itau: 'ITAU'
 		},
-		type:{
-			 online:'ONLINE'
-			,points:'EXCHANGE'
-			,hostToHost:'H2H'
+		type: {
+			online: 'ONLINE',
+			points: 'EXCHANGE',
+			hostToHost: 'H2H'
 		}
-	},	
+	},
 	path: {
-		itau:{
+		itau: {
 			validateRut: 'http://itau20apiprep.clop.cl/ValidaRutCanje',
 			generateDynamicKey: 'http://itau20apiprep.clop.cl/GeneraClaveDinamica',
 			checkDynamicKey: 'http://itau20apiprep.clop.cl/CompruebaClaveDinamica/:rut/:dv/:providerId/:dynamicKey/:dynamicKeyId',
 			startSession: 'http://itau20apiprep.clop.cl/InicioSesion/:rut/:dv/:providerId/:dynamicKeyId',
-			validateSessionFlow: 'http://itau20apiprep.clop.cl/ValidarFlujoCliente/:rut/:dv/:providerId/:dynamicKeyId/:dynamicKey/:pageNumber',			
+			validateSessionFlow: 'http://itau20apiprep.clop.cl/ValidarFlujoCliente/:rut/:dv/:providerId/:dynamicKeyId/:dynamicKey/:pageNumber',
 			requestPreExchange: 'http://itau20apiprep.clop.cl/SolicitarPrecanje',
 			validateClient: 'http://itau20apiprep.clop.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
 			requestExchange: 'http://itau20apiprep.clop.cl/RealizarCanje',
@@ -41,7 +44,7 @@ module.exports = {
 			getPaymentStatus: './resources/getPayStatusWS-desa.wsdl', //'http://192.168.254.65:8080/process/getPayStatusWS?wsdl',
 			processPayment: 'www1-desa.cocha.com/Boton_Pago_PP/onlinePay.asp?token=:token'
 		},
-		erp:{
+		erp: {
 			redeem: './resources/canjeServiceWS-desa.wsdl' // 'http://192.168.254.65:8080/process/canjeServiceWS?wsdl'
 		}
 	},
@@ -60,7 +63,7 @@ module.exports = {
 		enabled: false
 	},
 	redisConf: {
-		host: process.env.REDIS_HOST || '127.0.0.1',
+		host: process.env.REDIS_HOST ||  '127.0.0.1',
 		port: parseInt(process.env.REDIS_PORT) || 6379,
 		db: parseInt(process.env.REDIS_DB) || 0,
 		expire: 60 * 60 * 24, // Seconds -> 24h
@@ -69,19 +72,19 @@ module.exports = {
 		expireUserSession: 60 * 25 // Seconds -> 25m
 	},
 	mysqlConf: {
-		host: process.env.MYSQL_HOST || '192.168.254.170',
+		host: process.env.MYSQL_HOST ||  '192.168.254.170',
 		port: parseInt(process.env.MYSQL_PORT) || 3306,
 		database: 'expackage',
-		username: process.env.MYSQL_USER || 'search-digital',
-		password: process.env.MYSQL_PASS || 'c0ch4.D1g1t4l',
+		username: process.env.MYSQL_USER ||  'search-digital',
+		password: process.env.MYSQL_PASS ||  'c0ch4.D1g1t4l',
 		// insecureAuth: true
 	},
 	mongoConf: {
-		host: process.env.MONGODB_HOST || 'mongo-db-desa.cocha.com',
+		host: process.env.MONGODB_HOST ||  'mongo-db-desa.cocha.com',
 		port: parseInt(process.env.MONGODB_PORT) || 27017,
 		database: process.env.MONGODB_DB || 'local',
 		username: process.env.MONGODB_USER || 'payment',
 		password: process.env.MONGODB_PASS || 'payment1234',
-		ttlCron:1200
+		ttlCron: 1200
 	}
 };
