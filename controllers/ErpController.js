@@ -6,7 +6,7 @@ const erpService = require('../services/ErpService');
 
 async function assignTransaction(ctx){
 	try {
-		if (!ctx.params.xpnr || !ctx.params.businessNumber || !ctx.params.sessionToken)) {
+		if (!ctx.params.xpnr || !ctx.params.businessNumber || !ctx.params.sessionToken) {
 			throw {
 				status: 400,
 				message: {
@@ -56,7 +56,7 @@ async function assignTransaction(ctx){
 
 async function checkTransaction(ctx){
 	try{
-		if (!ctx.params.xpnr || !ctx.params.sessionToken)) {
+		if (!ctx.params.xpnr || !ctx.params.sessionToken) {
 			throw {
 				status: 400,
 				message: {
