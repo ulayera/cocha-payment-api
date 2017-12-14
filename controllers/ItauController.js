@@ -186,6 +186,10 @@ async function executePayment(ctx) {
 
 				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode,info,preExchangeData.spentPoints);
 
+				erpResponse = {
+					STATUS:'OK'
+				}; //QUITAR
+
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
 					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, preExchangeData.id,preExchangeData.spentPoints, info);
 				} else {
@@ -256,6 +260,13 @@ async function executePayment(ctx) {
 async function checkPayment(ctx) {
 	let userData = ctx.authSession.userSessionData;
 	ctx.params.paymentSessionCode = userData.paymentSession;
+	let params = {
+		commerceCode: Koa.config.commerceCodes.cocha, //Puede ser mas de uno en el futuro
+		amount: userData.coPayment,
+		cochaCode: userData.cochaCode,
+		holderName: userData.name,
+		holderEmail: userData.email
+	};
 	if (await sessionPaymentServices.isValidAttempt(ctx) && ctx.authType === 'sessionOpen') {
 		ctx.params.rut = userData.rut;
 		ctx.params.dv = userData.dv;
@@ -273,13 +284,6 @@ async function checkPayment(ctx) {
 						}
 					};
 				} else {
-					let params = {
-						commerceCode: Koa.config.commerceCodes.cocha, //Puede ser mas de uno en el futuro
-						amount: userData.coPayment,
-						cochaCode: userData.cochaCode,
-						holderName: userData.name,
-						holderEmail: userData.email
-					};
 					paymentData = await webpayServices.getPaymentData(params);
 				}
 			}
@@ -338,8 +342,12 @@ async function checkPayment(ctx) {
 
 				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 	
-				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode);
+				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode,info,userData.preExchange.id, userData.spentPoints);
 				let responseStatus = '';
+
+				erpResponse = {
+					STATUS:'OK'
+				}; //QUITAR
 
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
 					await erpServices.addStatus(userData.paymentSession, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
