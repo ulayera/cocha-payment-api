@@ -3,6 +3,7 @@
 
 const paymentModel = require('../models/mongo/Payment');
 const soapServices = require('./SoapService');
+const logService = require('./LogService');
 
 function paymentAnalysis(_data){
 
@@ -108,30 +109,33 @@ function parsePaymentsRecords(_records,_businessNumber) {
 	};
 }
 
-async function informPayment(_sessionId,_info,_amount){
+async function informPayment(_sessionId, _info, _amount, _workflowData) {
 	let data = await paymentModel.get(_sessionId);
 	let params = {
-		 TOKEN:_sessionId
-		,EMAIL:data.email
-		,CPNR:data.xpnr
-		,EXCHANGESINFO:[{
-			EXCHANGEINFO:{
-				 RUT:_info.rut
-				,AMOUNT:_amount
-				,PAYMENTID:_info.paymentId
+		TOKEN: _sessionId,
+		EMAIL: data.email,
+		CPNR: data.xpnr,
+		EXCHANGESINFO: [{
+			EXCHANGEINFO: {
+				RUT: _info.rut,
+				AMOUNT: _amount,
+				PAYMENTID: _info.paymentId
 			}
 		}]
 	};
 
 	let response;
 	try {
-		response = await soapServices.callService(Koa.config.path.erp.redeem, 'canjeServiceWS', params);
-	} catch(err) {
+		_workflowData.serviceContext = 'payment';
+		_workflowData.logFunction = logService.logCallToService;
+		response = await soapServices.callService(Koa.config.path.erp.redeem, 'canjeServiceWS', params, _workflowData);
+	} catch (err) {
 		response = err;
 	}
-	
+
 	return response;
 }
+
 
 async function checkTransaction(_sessionToken,_xpnr){
     //safety checks

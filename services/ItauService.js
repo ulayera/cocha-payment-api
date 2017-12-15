@@ -1,7 +1,8 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
 
-const webServices 	= require('cocha-external-services').webServices;
+const webServices = require('cocha-external-services').webServices;
+const logService = require('./LogService');
 
 async function validateRut(_ctx) {
 	let url = Koa.config.path.itau.validateRut;
@@ -14,6 +15,7 @@ async function validateRut(_ctx) {
 		dv: _ctx.params.dv,
 		proveedor_id: Koa.config.security.itau.providerId,
 	};
+	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
@@ -47,6 +49,7 @@ async function generateDynamicKey(_ctx) {
 		telefono: _ctx.params.phoneNumber,
 		email: _ctx.params.email,
 	};
+	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
 			if (err) {
@@ -80,6 +83,7 @@ async function checkDynamicKey(_ctx) {
 		dynamicKey: _ctx.params.dynamicKey,
 		dynamicKeyId: _ctx.params.dynamicKeyId
 	};
+	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CLV_ESTADO, message: result.response.CLV_MENSAJE});
@@ -108,6 +112,7 @@ async function startSession(_ctx) {
 		providerId: Koa.config.security.itau.providerId,
 		dynamicKeyId: _ctx.params.dynamicKeyId
 	};
+	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CLV_ESTADO, message: result.response.CLV_MENSAJE});
@@ -140,6 +145,7 @@ async function validateSessionFlow(_ctx) {
 		dynamicKey: _ctx.params.dynamicKey,
 		pageNumber: 0 //Ni idea cual es el plan con este campo
 	};
+	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
@@ -175,6 +181,7 @@ async function requestPreExchange(_ctx) {
 		producto_id: 1, //Ni idea con este supuesto id
 		precanje_id: 0 //Tempoco se de que va
 	};
+	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.PRECANJE_ESTADO, message: result.response.PRECANJE_MENSAJE});
@@ -206,6 +213,7 @@ async function validateClient(_ctx) {
 		providerId: Koa.config.security.itau.providerId,
 		dynamicKeyId: _ctx.params.dynamicKeyId
 	};
+	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CLI_ESTADO, message: result.response.CLI_MENSAJE});
@@ -238,6 +246,7 @@ async function requestExchange(_ctx) {
 		glosa_canje: _ctx.params.productName,
 		orden_compra: _ctx.params.cpnr,
 	};
+	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});
@@ -269,6 +278,7 @@ async function cancelPreExchange(_ctx) {
 		preExchangeId: _ctx.params.preExchangeId,
 		productId: 1
 	};
+	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
 			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});
@@ -284,7 +294,6 @@ async function cancelPreExchange(_ctx) {
 
 	return data;
 }
-
 
 function getErrorByType(_meta) {
 	let status = Number(_meta.code);
@@ -316,11 +325,10 @@ function getErrorByType(_meta) {
 	};
 }
 
-
 module.exports = {
 	validateRut: validateRut,
 	generateDynamicKey: generateDynamicKey,
-    checkDynamicKey: checkDynamicKey,
+  checkDynamicKey: checkDynamicKey,
 	startSession: startSession,
 	validateSessionFlow: validateSessionFlow,
 	requestPreExchange: requestPreExchange,
