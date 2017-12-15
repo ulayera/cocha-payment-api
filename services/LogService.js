@@ -4,7 +4,6 @@
 const logRegisterModel = require('../models/mongo/LogRegister');
 
 async function logCallToService(_logObj, _super) {
-	Koa.log.debug('Que hay aki => ', _logObj);
 	let logRegister = new logRegisterModel({
 		trackId: _logObj.trackId,
 		flowId: _logObj.flowId,
