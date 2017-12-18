@@ -4,6 +4,7 @@
 const paymentModel = require('../models/mongo/Payment');
 const soapServices = require('./SoapService');
 const logService = require('./LogService');
+const itauService = require('./ItauService');
 
 function paymentAnalysis(_data){
 
@@ -116,36 +117,19 @@ async function informPayment(_sessionId,_info,_amount,_type,_method,_workflowDat
 		 TOKEN:_sessionId
 		,EMAIL:data.email
 		,XPNR:data.xpnr
-		,PAYMENTS:[{
+		,PAYMENTS:{
 			PAYMENT:{
 				 RUT:_info.rut
 				,AMOUNT:_amount
 				,PAYMENTID:_info.paymentId
 				,TYPE:_type
 				,METHOD:_method
-				,STORECODE:null
-				,AUTHORIZATIONCODE:null
+				,STORECODE:""
+				,AUTHORIZATIONCODE:""
 			}
-		}]
+		}
 	};
-	/*
-        <xsd:element name="TOKEN" type="xsd:string"/>
-        <xsd:element name="EMAIL" type="xsd:string"/>
-        <xsd:element name="XPNR" type="xsd:string"/>
-        <xsd:element name="PAYMENTS">
-            <xsd:complexType>
-                <xsd:sequence>
-                    <xsd:element name="PAYMENT">
-            <xsd:complexType>
-                <xsd:sequence>
-                    <xsd:element name="TYPE" type="xsd:string"/>
-                    <xsd:element name="METHOD" type="xsd:string"/>
-                    <xsd:element name="STORECODE" type="xsd:string"/>
-                    <xsd:element name="RUT" type="xsd:string"/>
-                    <xsd:element name="AMOUNT" type="xsd:integer"/>
-                    <xsd:element name="AUTHORIZATIONCODE" type="xsd:string"/>
-                    <xsd:element name="PAYMENTID" type="xsd:string"/>
-	*/
+
 	let response;
 	try {
 		_workflowData.serviceContext = 'payment';
@@ -195,20 +179,45 @@ async function checkPendingPayments(){
         { processed: 0 },
         { ttl : { $lt :currentTimestamp }}
     ]});
-    //unblock points
-    let failedErpTransactions = await paymentModel.getAllBy({ $and : [
-        { state:Koa.config.states.paid },
-        { processed: 0 },
-        { ttl : { $lt :currentTimestamp }}
-    ]});
-	//retry smart
-	//send a warning if smart failed
-	//put a processed = 1 mark in the document
-	console.log("failedpayment",failedPaymentTransactions.length);
-	console.log("failederp",failedErpTransactions.length);	
-	throw {};
+    //let failedErpTransactions = await paymentModel.getAllBy({ $and : [
+	//  { state:Koa.config.states.paid },
+    //  { processed: 0 },
+    //  { ttl : { $lt :currentTimestamp }}
+    //]});
+	console.log("cuantas",failedPaymentTransactions.length);
+	let results = [];
+	_.forEach(failedPaymentTransactions,function(transaction) {
+		console.log("transaccion",transaction._id,transaction);
+		let data = await paymentModel.get(transaction._id);
+		data.processed = Koa.config.codes.processedFlag.pending;
+		await paymentModel.save(payment);
 
-	return failedTransactions;
+		let transactionItau = _.find(transaction.status, function(o) { return o.method === Koa.config.codes.method.itau && (o.status === Koa.config.states.pending || o.status === Koa.config.states.pending); });
+		if (transactionItau) {
+			let rut  = (transactionItau.info.rut) ? transactionItau.info.rut.split('-')[0].replace(new RegExp('\\.', 'g'), '') : -1 ;
+			let dv   = (transactionItau.info.rut) ? transactionItau.info.rut.split('-')[1] : -1;		
+			if(rut!==-1 && dv!==-1) {
+				let cancellationData = {
+					params:{
+						rut:rut,
+						dv:dv,
+						preExchangeId:transactionItau.id
+					}
+				};
+				try {
+					let result = await ItauService.cancelPreExchange(cancellationData);
+					console.log("result",result);
+					results.push(result);
+					data.processed = Koa.config.codes.processedFlag.closed;
+					await paymentModel.save(payment);
+				} catch (err) {
+					//add alarm to channel
+				}
+			}
+		}
+	});
+	console.log(results.length);
+	return results;
 }
 
 module.exports = {

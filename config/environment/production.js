@@ -30,6 +30,7 @@ module.exports = {
 		},
 		processedFlag: {
 			open:0,
+			pending:1,
 			closed:2
 		}
 	},
