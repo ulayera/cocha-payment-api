@@ -7,7 +7,26 @@
                     <xsd:sequence>
                         <xsd:element name="TOKEN" type="xsd:string"/>
                         <xsd:element name="EMAIL" type="xsd:string"/>
-                        <xsd:element name="CPNR" type="xsd:string"/>
+                        <xsd:element name="XPNR" type="xsd:string"/>
+                        <xsd:element name="PAYMENTS">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="PAYMENT">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="TYPE" type="xsd:string"/>
+                                    <xsd:element name="METHOD" type="xsd:string"/>
+                                    <xsd:element name="STORECODE" type="xsd:string"/>
+                                    <xsd:element name="RUT" type="xsd:string"/>
+                                    <xsd:element name="AMOUNT" type="xsd:integer"/>
+                                    <xsd:element name="AUTHORIZATIONCODE" type="xsd:string"/>
+                                    <xsd:element name="PAYMENTID" type="xsd:string"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>

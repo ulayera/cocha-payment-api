@@ -109,21 +109,43 @@ function parsePaymentsRecords(_records,_businessNumber) {
 	};
 }
 
-async function informPayment(_sessionId, _info, _amount, _workflowData) {
+
+async function informPayment(_sessionId,_info,_amount,_type,_method,_workflowData){
 	let data = await paymentModel.get(_sessionId);
 	let params = {
-		TOKEN: _sessionId,
-		EMAIL: data.email,
-		CPNR: data.xpnr,
-		EXCHANGESINFO: [{
-			EXCHANGEINFO: {
-				RUT: _info.rut,
-				AMOUNT: _amount,
-				PAYMENTID: _info.paymentId
+		 TOKEN:_sessionId
+		,EMAIL:data.email
+		,XPNR:data.xpnr
+		,PAYMENTS:[{
+			PAYMENT:{
+				 RUT:_info.rut
+				,AMOUNT:_amount
+				,PAYMENTID:_info.paymentId
+				,TYPE:_type
+				,METHOD:_method
+				,STORECODE:null
+				,AUTHORIZATIONCODE:null
 			}
 		}]
 	};
-
+	/*
+        <xsd:element name="TOKEN" type="xsd:string"/>
+        <xsd:element name="EMAIL" type="xsd:string"/>
+        <xsd:element name="XPNR" type="xsd:string"/>
+        <xsd:element name="PAYMENTS">
+            <xsd:complexType>
+                <xsd:sequence>
+                    <xsd:element name="PAYMENT">
+            <xsd:complexType>
+                <xsd:sequence>
+                    <xsd:element name="TYPE" type="xsd:string"/>
+                    <xsd:element name="METHOD" type="xsd:string"/>
+                    <xsd:element name="STORECODE" type="xsd:string"/>
+                    <xsd:element name="RUT" type="xsd:string"/>
+                    <xsd:element name="AMOUNT" type="xsd:integer"/>
+                    <xsd:element name="AUTHORIZATIONCODE" type="xsd:string"/>
+                    <xsd:element name="PAYMENTID" type="xsd:string"/>
+	*/
 	let response;
 	try {
 		_workflowData.serviceContext = 'payment';

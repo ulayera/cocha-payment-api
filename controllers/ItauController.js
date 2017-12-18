@@ -185,7 +185,7 @@ async function executePayment(ctx) {
 
 				await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
 
-				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode, info, userData.spentPoints, ctx.authSession);
+				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode,info,preExchangeData.spentPoints, Koa.config.codes.type.points, Koa.config.codes.method.itau, ctx.authSession);
 
 				// erpResponse = {
 				// 	STATUS:'OK'
@@ -354,8 +354,8 @@ async function checkPayment(ctx) {
 	
 				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 	
-				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode, info, userData.spentPoints, ctx.authSession);
-
+				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode, info,userData.spentPoints,Koa.config.codes.type.points, Koa.config.codes.method.itau,ctx.authSession);
+	
 				// erpResponse = {
 				// 	STATUS:'OK'
 				// }; //QUITAR
