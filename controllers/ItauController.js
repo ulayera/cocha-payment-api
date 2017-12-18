@@ -225,6 +225,7 @@ async function executePayment(ctx) {
 					holderEmail: userData.email
 				};
 				let paymentData = await webpayServices.getPaymentData(params, ctx.authSession);
+				paymentData.commerceCode = params.commerceCode;
 				userData.coPayment = params.amount;
 				userData.extraExchange = paymentData;
 				userData.extraExchange.paymentTry = 1;
@@ -295,6 +296,7 @@ async function checkPayment(ctx) {
 						holderEmail: userData.email
 					};
 					paymentData = await webpayServices.getPaymentData(params, ctx.authSession);
+					paymentData.commerceCode = params.commerceCode;
 				}
 			}
 		} catch (err) {
@@ -311,6 +313,7 @@ async function checkPayment(ctx) {
 		
 		if (paymentStatusData.status === 'Pending') {	
 			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment, {});
+			userData.extraExchange.commerceCode = paymentData.commerceCode;			
 			userData.extraExchange.tokenWebPay = paymentData.tokenWebPay;
 			userData.extraExchange.url = paymentData.url;
 			userData.extraExchange.paymentTry++;
@@ -323,7 +326,7 @@ async function checkPayment(ctx) {
 				url: userData.extraExchange.url
 			};
 		} else {
-			paymentStatusData.commerceCode = params.commerceCode;
+			paymentStatusData.commerceCode = userData.extraExchange.commerceCode;
 
 			await erpServices.addStatus(userData.paymentSession, Koa.config.states.paid, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment,{
 				paymentData:paymentStatusData
