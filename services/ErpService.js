@@ -4,6 +4,7 @@
 const paymentModel = require('../models/mongo/Payment');
 const soapServices = require('./SoapService');
 const logService = require('./LogService');
+const itauService = require('./ItauService');
 
 function paymentAnalysis(_data){
 
@@ -109,19 +110,24 @@ function parsePaymentsRecords(_records,_businessNumber) {
 	};
 }
 
-async function informPayment(_sessionId, _info, _amount, _workflowData) {
+
+async function informPayment(_sessionId,_info,_amount,_type,_method,_workflowData){
 	let data = await paymentModel.get(_sessionId);
 	let params = {
-		TOKEN: _sessionId,
-		EMAIL: data.email,
-		CPNR: data.xpnr,
-		EXCHANGESINFO: [{
-			EXCHANGEINFO: {
-				RUT: _info.rut,
-				AMOUNT: _amount,
-				PAYMENTID: _info.paymentId
+		 TOKEN:_sessionId
+		,EMAIL:data.email
+		,XPNR:data.xpnr
+		,PAYMENTS:{
+			PAYMENT:{
+				 RUT:_info.rut
+				,AMOUNT:_amount
+				,PAYMENTID:_info.paymentId
+				,TYPE:_type
+				,METHOD:_method
+				,STORECODE:""
+				,AUTHORIZATIONCODE:""
 			}
-		}]
+		}
 	};
 
 	let response;
@@ -165,7 +171,6 @@ async function checkTransaction(_sessionToken,_xpnr){
 }
 
 
-
 async function checkPendingPayments(){
 	let currentTimestamp = moment().unix();
     let failedPaymentTransactions = await paymentModel.getAllBy({ $and : [
@@ -173,20 +178,49 @@ async function checkPendingPayments(){
         { processed: 0 },
         { ttl : { $lt :currentTimestamp }}
     ]});
-    //unblock points
-    let failedErpTransactions = await paymentModel.getAllBy({ $and : [
-        { state:Koa.config.states.paid },
-        { processed: 0 },
-        { ttl : { $lt :currentTimestamp }}
-    ]});
-	//retry smart
-	//send a warning if smart failed
-	//put a processed = 1 mark in the document
-	console.log("failedpayment",failedPaymentTransactions.length);
-	console.log("failederp",failedErpTransactions.length);	
-	throw {};
+    //let failedErpTransactions = await paymentModel.getAllBy({ $and : [
+	//  { state:Koa.config.states.paid },
+    //  { processed: 0 },
+    //  { ttl : { $lt :currentTimestamp }}
+    //]});
+	let results = [];
+	_.forEach(failedPaymentTransactions,async function(transaction) {
+		let data = await paymentModel.get(transaction._id);
+		//data.processed = Koa.config.codes.processedFlag.pending;
+		//await paymentModel.save(data);
 
-	return failedTransactions;
+		let transactionItau = _.find(transaction.status, function(o) { return o.method === Koa.config.codes.method.itau && (o.status === Koa.config.states.pending || o.status === Koa.config.states.pending); });
+		if (transactionItau) {
+
+			let rut  = (transactionItau.info.rut) ? transactionItau.info.rut.split('-')[0].replace(new RegExp('\\.', 'g'), '') : -1 ;
+			let dv   = (transactionItau.info.rut) ? transactionItau.info.rut.split('-')[1] : -1;		
+			if(rut!==-1 && dv!==-1) {
+				let cancellationData = {
+					params:{
+						rut:rut,
+						dv:dv,
+						preExchangeId:transactionItau.id
+					},
+					authSession:{}
+				};
+				try {
+					let result = await itauService.cancelPreExchange(cancellationData);
+					data.processed = Koa.config.codes.processedFlag.closed;
+					await paymentModel.save(data);
+				} catch (err) {
+					if(err && err.message && err.message.code && err.message.code.toString().indexOf('ActionError') !== -1){
+						data.processed = Koa.config.codes.processedFlag.closed;
+						await paymentModel.save(data);					
+					} else {
+						data.processed = Koa.config.codes.processedFlag.open;
+						await paymentModel.save(data);											
+					}
+
+				}
+			}
+		}
+	});
+	return 'OK';
 }
 
 module.exports = {
