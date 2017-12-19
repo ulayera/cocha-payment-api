@@ -171,7 +171,6 @@ async function checkTransaction(_sessionToken,_xpnr){
 }
 
 
-
 async function checkPendingPayments(){
 	let currentTimestamp = moment().unix();
     let failedPaymentTransactions = await paymentModel.getAllBy({ $and : [
@@ -184,16 +183,15 @@ async function checkPendingPayments(){
     //  { processed: 0 },
     //  { ttl : { $lt :currentTimestamp }}
     //]});
-	console.log("cuantas",failedPaymentTransactions.length);
 	let results = [];
-	_.forEach(failedPaymentTransactions,function(transaction) {
-		console.log("transaccion",transaction._id,transaction);
+	_.forEach(failedPaymentTransactions,async function(transaction) {
 		let data = await paymentModel.get(transaction._id);
-		data.processed = Koa.config.codes.processedFlag.pending;
-		await paymentModel.save(payment);
+		//data.processed = Koa.config.codes.processedFlag.pending;
+		//await paymentModel.save(data);
 
 		let transactionItau = _.find(transaction.status, function(o) { return o.method === Koa.config.codes.method.itau && (o.status === Koa.config.states.pending || o.status === Koa.config.states.pending); });
 		if (transactionItau) {
+
 			let rut  = (transactionItau.info.rut) ? transactionItau.info.rut.split('-')[0].replace(new RegExp('\\.', 'g'), '') : -1 ;
 			let dv   = (transactionItau.info.rut) ? transactionItau.info.rut.split('-')[1] : -1;		
 			if(rut!==-1 && dv!==-1) {
@@ -202,22 +200,27 @@ async function checkPendingPayments(){
 						rut:rut,
 						dv:dv,
 						preExchangeId:transactionItau.id
-					}
+					},
+					authSession:{}
 				};
 				try {
-					let result = await ItauService.cancelPreExchange(cancellationData);
-					console.log("result",result);
-					results.push(result);
+					let result = await itauService.cancelPreExchange(cancellationData);
 					data.processed = Koa.config.codes.processedFlag.closed;
-					await paymentModel.save(payment);
+					await paymentModel.save(data);
 				} catch (err) {
-					//add alarm to channel
+					if(err && err.message && err.message.code && err.message.code.toString().indexOf('ActionError') !== -1){
+						data.processed = Koa.config.codes.processedFlag.closed;
+						await paymentModel.save(data);					
+					} else {
+						data.processed = Koa.config.codes.processedFlag.open;
+						await paymentModel.save(data);											
+					}
+
 				}
 			}
 		}
 	});
-	console.log(results.length);
-	return results;
+	return 'OK';
 }
 
 module.exports = {
