@@ -3,8 +3,9 @@
 
 const paymentModel = require('../models/mongo/Payment');
 const soapServices = require('./SoapService');
-const logService = require('./LogService');
-const itauService = require('./ItauService');
+const logService   = require('./LogService');
+const itauService  = require('./ItauService');
+const slackService = require('./SlackService');
 
 function paymentAnalysis(_data){
 
@@ -212,10 +213,10 @@ async function checkPendingPayments(){
 						data.processed = Koa.config.codes.processedFlag.closed;
 						await paymentModel.save(data);					
 					} else {
+						slackService.log('info', JSON.stringify(err));
 						data.processed = Koa.config.codes.processedFlag.open;
-						await paymentModel.save(data);											
+						await paymentModel.save(data);
 					}
-
 				}
 			}
 		}
