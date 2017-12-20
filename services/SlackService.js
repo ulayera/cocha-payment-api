@@ -2,17 +2,17 @@
 
 var rp = require('request-promise');
 
-const slackLogFlag = process.env.LOG_TO_SLACK || true;
+const slackLogFlag = process.env.LOG_TO_SLACK || false;
 const slackChannels = {
     alertasvh: 'https://hooks.slack.com/services/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'
 };
 
-async function log(level, msg, callback) {
+async function log(level, msg, type, callback) {
     if (slackLogFlag === false) {
         return;
     }
     let payload = {
-        username: "Pagos Bot",
+        username: type+" Bot",
         text: msg,
         mrkdwn: true,
     };

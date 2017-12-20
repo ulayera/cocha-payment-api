@@ -69,7 +69,7 @@ async function checkPayment(_paymentToken, _workflowData) {
         cardExp: charge.expTarjeta,
         cardType: charge.marcaTC,
         dues: charge.cuotas,
-        amount: charge.monto  
+        amount: charge.monto
       };
     } else {
       return {
