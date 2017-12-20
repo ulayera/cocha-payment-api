@@ -350,7 +350,7 @@ async function checkPayment(ctx) {
 
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
 					await erpServices.addStatus(userData.paymentSession, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
-					slackService.log('info', JSON.stringify(err),'SMART SNITCH');
+					slackService.log('info', JSON.stringify(err),'Smart Error');
 				} else {
 					await erpServices.addStatus(userData.paymentSession, Koa.config.states.erpFail, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
 				}
