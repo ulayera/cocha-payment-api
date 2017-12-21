@@ -214,8 +214,9 @@ async function checkPendingPayments(){
 						await paymentModel.save(data);					
 					} else {
 						slackService.log('info', JSON.stringify(err), 'Cron Itau');
-						data.processed = Koa.config.codes.processedFlag.open;
-						await paymentModel.save(data);
+						//leave them pending, someone(?) should take action from the slack alert
+						//data.processed = Koa.config.codes.processedFlag.open;
+						//await paymentModel.save(data);
 					}
 				}
 			}

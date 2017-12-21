@@ -2,8 +2,6 @@
 /* jshint strict: false, esversion: 6 */
 
 const logRegisterModel = require('../models/mongo/LogRegister');
-var winston = require('winston');
-winston.transports.Slack = require('./SlackService');
 
 async function logCallToService(_logObj, _super) {
 	let logRegister = new logRegisterModel({
