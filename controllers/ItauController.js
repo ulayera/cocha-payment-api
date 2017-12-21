@@ -5,7 +5,9 @@ const sessionPaymentServices = require('../services/SessionPaymentService');
 const itauServices = require('../services/ItauService');
 const erpServices = require('../services/ErpService');
 const userSessionModel = require('../models/redis/UserSession');
+const paymentModel = require('../models/mongo/Payment');
 const webpayServices = require('../services/WebpayService');
+const slackService = require('../services/SlackService');
 
 async function getPaymentSession(ctx) {
 	let paymentSessionData = await sessionPaymentServices.get(ctx);
@@ -187,10 +189,19 @@ async function executePayment(ctx) {
 
 				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode,info,preExchangeData.spentPoints, Koa.config.codes.type.points, Koa.config.codes.method.itau, ctx.authSession);
 
+				console.log(erpResponse);
+
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
 					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
 				} else {
+					slackService.log('info', JSON.stringify(erpResponse),'Smart Error');					
 					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.erpFail, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+				}
+				
+				if(erpResponse && erpResponse.DATA && erpResponse.DATA.BUSINESSNUMBER){
+					let payment = await paymentModel.get(ctx.params.paymentSessionCode);
+					payment.business = erpResponse.DATA.BUSINESSNUMBER;
+					await paymentModel.save(payment);
 				}
 
 			} catch (err) {
@@ -350,10 +361,17 @@ async function checkPayment(ctx) {
 
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
 					await erpServices.addStatus(userData.paymentSession, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
-					slackService.log('info', JSON.stringify(err),'Smart Error');
 				} else {
 					await erpServices.addStatus(userData.paymentSession, Koa.config.states.erpFail, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+					slackService.log('info', JSON.stringify(erpResponse),'Smart Error');
 				}
+
+				if(erpResponse && erpResponse.DATA && erpResponse.DATA.BUSINESSNUMBER){
+					let payment = await paymentModel.get(userData.paymentSession);
+					payment.business = erpResponse.DATA.BUSINESSNUMBER;
+					await paymentModel.save(payment);
+				}
+
 				ctx.body = {
 					status: 'Complete',
 					url: null
