@@ -444,5 +444,5 @@ module.exports = {
 async function test(ctx){
 	//ctx.body = await soapServices.getDetails(Koa.config.path.erp.redeem, 'canjeServiceWS');
 	//await slackService.log('info', JSON.stringify({lllaaalalalala:"tomtotmot"}));
-	//ctx.body = await erpServices.checkPendingPayments();
+	ctx.body = await erpServices.checkPendingPayments();
 }

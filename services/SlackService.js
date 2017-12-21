@@ -2,7 +2,7 @@
 
 var rp = require('request-promise');
 
-const slackLogFlag = process.env.LOG_TO_SLACK || false;
+const slackLogFlag = process.env.LOG_TO_SLACK || true;
 const slackChannels = {
     alertasvh: 'https://hooks.slack.com/services/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'
 };
