@@ -3,12 +3,14 @@
 
 const sessionPaymentService = require('../services/SessionPaymentService');
 
+const validSrc = ['V+H', 'Vuelo', 'Hotel'];
+
 async function createPayment(ctx) {
   let errors = [];
   if (!_.isString(ctx.params.ccode) || _.isEmpty(ctx.params.ccode)) {
     errors.push("Parameter 'ccode' is invalid: " + ctx.params.ccode);
   }
-  if (!_.isString(ctx.params.paymentSrc) || _.isEmpty(ctx.params.paymentSrc)) {
+  if (!_.isString(ctx.params.paymentSrc) || _.isEmpty(ctx.params.paymentSrc) || !_.includes(validSrc, ctx.params.paymentSrc)) {
     errors.push("Parameter 'paymentSrc' is invalid: " + ctx.params.paymentSrc);
   }
   if (!_.isString(ctx.params.title) || _.isEmpty(ctx.params.title)) {

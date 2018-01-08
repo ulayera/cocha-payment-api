@@ -29,7 +29,8 @@ async function create(_ctx) {
 
   var payment = new paymentModel.model({
   	cpnr: session.data.cpnr,
-  	xpnr: session.data.cochaCode,
+    xpnr: session.data.cochaCode,
+    source: session.data.paymentSource,
   	total: session.data.price,
   	ttl: moment().unix() + Koa.config.mongoConf.ttlCron,
   	email: session.data.contact,

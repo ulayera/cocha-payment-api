@@ -23,11 +23,15 @@ async function validateRut(_ctx) {
 				reject(err);
 			} else {
 				resolve({
+					rut: result.response.CLI_RUT,
+					dv: result.response.CLI_DV,
           name: result.response.CLI_NOMBRE,
-          rut: result.response.CLI_RUT,
-          dv: result.response.CLI_DV,
+          firstLastName: result.response.CLI_PATERNO,
+          secondLastName: result.response.CLI_MATERNO,
           email: result.response.CLI_MAIL,
-          phoneNumber: result.response.CLI_TELEFONO
+					phoneNumber: result.response.CLI_TELEFONO,
+					segmentId: result.response.CLI_SEGMENTO_ID,
+					segmentName: result.response.CLI_SEGMENTO_NMB
         });
 			}
 		}, _ctx.authSession);
@@ -91,45 +95,15 @@ async function checkDynamicKey(_ctx) {
 				reject(err);
 			} else {
 				resolve({
-					checkingStatus: result.response.CLV_MENSAJE
-        		});
-			}
-		}, _ctx.authSession);
-	});
-
-	return data;
-}
-
-async function startSession(_ctx) {
-	let url = Koa.config.path.itau.startSession;
-	let header = {
-		'api-key': Koa.config.security.itau.apiKey,
-		'api-key-user': Koa.config.security.itau.apiKeyUser
-	};
-	let params = {
-		rut: _ctx.params.rut,
-		dv: _ctx.params.dv,
-		providerId: Koa.config.security.itau.providerId,
-		dynamicKeyId: _ctx.params.dynamicKeyId
-	};
-	_ctx.authSession.logFunction = logService.logCallToService;
-	let data = await new Promise((resolve, reject) => {
-		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CLV_ESTADO, message: result.response.CLV_MENSAJE});
-			if (err) {
-				reject(err);
-			} else {
-				resolve({
 					status: result.response.CLV_MENSAJE,
-					expiration: result.response.CLV_FCH_EXPIRA_CLAVE,
-				});
+					sessionExpiration: result.response.CLV_FCH_EXPIRA_SESION
+        });
 			}
 		}, _ctx.authSession);
 	});
 
 	return data;
 }
-
 
 async function validateSessionFlow(_ctx) {
 	let url = Koa.config.path.itau.validateSessionFlow;
@@ -143,7 +117,9 @@ async function validateSessionFlow(_ctx) {
 		providerId: Koa.config.security.itau.providerId,
 		dynamicKeyId: _ctx.params.dynamicKeyId,		
 		dynamicKey: _ctx.params.dynamicKey,
-		pageNumber: 0 //Ni idea cual es el plan con este campo
+		walletId: '0',
+		pageNumber: '1',
+		allowReload: '1'
 	};
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
@@ -157,7 +133,9 @@ async function validateSessionFlow(_ctx) {
           dv: result.response.CLI_DV,
 					phoneNumber: result.response.CLI_TELEFONO,
 					email: result.response.CLI_MAIL,
-					availablePoints: +result.response.CLI_SALDO_DISPONIBLE
+					availablePoints: +result.response.CLI_SALDO_DISPONIBLE,
+					availableAmount: +result.response.CLI_SALDO_CONVERSION,
+					typeAmount: result.response.CLI_TIPO_CONVERSION
         });
 			}
 		}, _ctx.authSession);
@@ -177,9 +155,10 @@ async function requestPreExchange(_ctx) {
 		dv: _ctx.params.dv,
 		proveedor_id: Koa.config.security.itau.providerId,
 		clave_id_generado: _ctx.params.dynamicKeyId,
-		valor_producto: _ctx.params.spendingPoint,
-		producto_id: 1, //Ni idea con este supuesto id
-		precanje_id: 0 //Tempoco se de que va
+		valor_producto: _ctx.params.spendingAmount,
+		producto_id: _ctx.params.productId,
+		cuenta_id: '0',
+		cantidad_producto: 1
 	};
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
@@ -191,8 +170,8 @@ async function requestPreExchange(_ctx) {
 				resolve({
 					status: result.response.PRECANJE_MENSAJE,
 					id: result.response.PRECANJE_ID,
-					availablePoints: +result.response.PRECANJE_SALDO_CLIENTE,
-					spentPoints: +result.response.PRECANJE_MONTO
+					availableAmount: +result.response.PRECANJE_SALDO_CONVERSION,
+					spentAmount: +result.response.PRECANJE_RESERVADO_CONVERSION
         });
 			}
 		}, _ctx.authSession);
@@ -241,10 +220,10 @@ async function requestExchange(_ctx) {
 		dv: _ctx.params.dv,
 		proveedor_id: Koa.config.security.itau.providerId,
 		precanje_id: _ctx.params.preExchangeId,
-		puntos_utilizados: _ctx.params.spendingPoint,
+		conversion_utilizados: _ctx.params.spendingAmount,
 		copago: _ctx.params.extraExchangeAmount,
 		glosa_canje: _ctx.params.productName,
-		orden_compra: _ctx.params.cpnr,
+		orden_compra: _ctx.params.productId
 	};
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
@@ -276,7 +255,8 @@ async function cancelPreExchange(_ctx) {
 		dv: _ctx.params.dv, 
 		providerId: Koa.config.security.itau.providerId,
 		preExchangeId: _ctx.params.preExchangeId,
-		productId: 1
+		productId: 0,
+		productQuantity: 1
 	};
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
@@ -329,7 +309,6 @@ module.exports = {
 	validateRut: validateRut,
 	generateDynamicKey: generateDynamicKey,
   checkDynamicKey: checkDynamicKey,
-	startSession: startSession,
 	validateSessionFlow: validateSessionFlow,
 	requestPreExchange: requestPreExchange,
 	validateClient: validateClient,

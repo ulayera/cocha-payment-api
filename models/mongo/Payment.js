@@ -3,6 +3,7 @@ var mongoose = require('mongoose');
 var schema = new mongoose.Schema({
     cpnr: {type: String},
     xpnr: {type: String},
+    source: {type: String},
     email: {type: String},
     status: [{
     	id:String

@@ -3,6 +3,7 @@
 
 const sessionPaymentServices = require('../services/SessionPaymentService');
 const itauServices = require('../services/ItauService');
+const bookingServices = require('../services/BookingService');
 const erpServices = require('../services/ErpService');
 const userSessionModel = require('../models/redis/UserSession');
 const paymentModel = require('../models/mongo/Payment');
@@ -44,7 +45,7 @@ async function loadClient(ctx) {
 
 		ctx.body = {
 			status: 'Complete',
-			name: userData.name,
+			name: userData.name + ' ' + userData.firstLastName + ' ' + userData.secondLastName,
 			phone: userData.phoneNumber,
 			expireDate: dynamicKeyData.expiration
 		};
@@ -87,7 +88,8 @@ async function validateDynamicKey(ctx) {
 	ctx.params.dynamicKeyId = userData.dynamicKey.id;
 	try {
 		let checkDynamicKeyData = await itauServices.checkDynamicKey(ctx);
-		userData.dynamicKey.checkingStatus = checkDynamicKeyData.checkingStatus
+		userData.dynamicKey.checkStatus = checkDynamicKeyData.status;
+		userData.expiration = checkDynamicKeyData.sessionExpiration;
 	} catch (err) {
 		if ((err.code === 'ActionError-150' || err.code === 'ActionError-151') && userData.dynamicKey.attempts > 2) {
 			Koa.log.error(err);
@@ -103,12 +105,11 @@ async function validateDynamicKey(ctx) {
 		}
 	}
 
-	let startSessionData = await itauServices.startSession(ctx)
-	userData.expiration = startSessionData.expiration;
-
 	let sessionFlowData = await itauServices.validateSessionFlow(ctx);
 	userData.totalPoints = sessionFlowData.availablePoints;
 	userData.availablePoints = sessionFlowData.availablePoints;
+	userData.totalAmount = sessionFlowData.availableAmount;
+	userData.availableAmount = sessionFlowData.availableAmount;
 
 	ctx.params.paymentSessionCode = userData.paymentSession;
 	let paymentSessionData = await sessionPaymentServices.get(ctx);
@@ -116,6 +117,7 @@ async function validateDynamicKey(ctx) {
 	userData.cpnr = paymentSessionData.data.cpnr;
 	userData.productName = paymentSessionData.data.productName;
 	userData.price = paymentSessionData.data.price;
+	userData.productSrc = paymentSessionData.data.paymentSource;
 
 	ctx.params.idDocument = userData.rut + '' + userData.dv;
 	await sessionPaymentServices.addAttempt(ctx);
@@ -123,7 +125,8 @@ async function validateDynamicKey(ctx) {
 
 	ctx.body = {
 		status: 'Complete',
-		points: userData.totalPoints
+		points: userData.totalPoints,
+		amount: userData.totalAmount
 	};
 }
 
@@ -140,34 +143,35 @@ async function executePayment(ctx) {
 				}
 			};
 		}
-		if (!_.isNumber(ctx.params.spendingPoint)) {
+		if (!_.isNumber(ctx.params.spendingAmount)) {
 			throw {
 				status: 400,
 				message: {
 					code: 'ParamsError',
-					msg: "Parameter 'spendingPoint' is invalid: " + ctx.params.spendingPoint
+					msg: "Parameter 'spendingAmount' is invalid: " + ctx.params.spendingAmount
 				}
 			};
 		}
-		ctx.params.spendingPoint = (ctx.params.spendingPoint > userData.price) ? userData.price : ctx.params.spendingPoint;
+		ctx.params.spendingAmount = (ctx.params.spendingAmount > userData.price) ? userData.price : ctx.params.spendingAmount;
 
 		ctx.params.rut = userData.rut;
 		ctx.params.dv = userData.dv;
+		ctx.params.productId = userData.cpnr;
 		ctx.params.dynamicKeyId = userData.dynamicKey.id;
 		let preExchangeData = await itauServices.requestPreExchange(ctx);
-		userData.availablePoints = preExchangeData.availablePoints;
-		userData.spentPoints = preExchangeData.spentPoints;
-		delete preExchangeData.availablePoints;
-		delete preExchangeData.spentPoints;
+		userData.availableAmount = preExchangeData.availableAmount;
+		userData.spentAmount = preExchangeData.spentAmount;
+		delete preExchangeData.availableAmount;
+		delete preExchangeData.spentAmount;
 		userData.preExchange = preExchangeData;
 
-		await erpServices.addStatus(userData.paymentSession, Koa.config.states.pending, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp , userData.preExchange.id, userData.spentPoints, {
-			rut:userData.rut + '-' + userData.dv
+		await erpServices.addStatus(userData.paymentSession, Koa.config.states.pending, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp , userData.preExchange.id, userData.spentAmount, {
+			rut: userData.rut + '-' + userData.dv
 		});
 
 		let responseErpStatus = null;		
 
-		if (userData.spentPoints === userData.price) {
+		if (userData.spentAmount === userData.price) {
 			try {
 				userData.extraExchange = null;
 
@@ -176,7 +180,7 @@ async function executePayment(ctx) {
 				ctx.params.preExchangeId = userData.preExchange.id;
 				ctx.params.extraExchangeAmount = 0;
 				ctx.params.productName = userData.productName;
-				ctx.params.cpnr = userData.cpnr;
+				ctx.params.productId = userData.cpnr;
 				let exchangeData = await itauServices.requestExchange(ctx);
 				userData.postExchange = exchangeData;
 
@@ -185,17 +189,15 @@ async function executePayment(ctx) {
 					paymentId: exchangeData.id
 				};
 
-				await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+				await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, info);
 
-				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode,info,preExchangeData.spentPoints, Koa.config.codes.type.points, Koa.config.codes.method.itau, ctx.authSession);
-
-				console.log(erpResponse);
+				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode, info, userData.spentAmount, Koa.config.codes.type.points, Koa.config.codes.method.itau, ctx.authSession);
 
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
-					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, info);
 				} else {
 					slackService.log('info', JSON.stringify(erpResponse),'Smart Error');					
-					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.erpFail, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+					await erpServices.addStatus(ctx.params.paymentSessionCode, Koa.config.states.erpFail, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, info);
 				}
 				
 				if(erpResponse && erpResponse.DATA && erpResponse.DATA.BUSINESSNUMBER){
@@ -208,19 +210,21 @@ async function executePayment(ctx) {
 				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-				await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
+				await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, {
 					rut: ctx.params.rut + '-' + ctx.params.dv
 				});
 				
 				throw err;
 			}
-			//Es posible preguntar a ITAU si se cobraron los puntos?
+
+			ctx.params.cochaCode = userData.cochaCode;
+			bookingServices.emit(ctx);
 			await sessionPaymentServices.remove(ctx);
 		} else {
 			try {
 				let params = {
 					commerceCode: Koa.config.commerceCodes.cocha, //Puede ser mas de uno en el futuro
-					amount: userData.price - userData.spentPoints,
+					amount: userData.price - userData.spentAmount,
 					cochaCode: userData.cochaCode,
 					holderName: userData.name,
 					holderEmail: userData.email
@@ -236,7 +240,7 @@ async function executePayment(ctx) {
 				Koa.log.error(err);
 				ctx.params.preExchangeId = userData.preExchange.id;
 				let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-				await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
+				await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, {
 					rut: ctx.params.rut + '-' + ctx.params.dv
 				});
 				throw err;
@@ -247,6 +251,7 @@ async function executePayment(ctx) {
 		ctx.body = {
 			status: ((userData.extraExchange) ? 'Pending' : ( responseErpStatus ? responseErpStatus : 'Complete')),
 			points: userData.availablePoints,
+			amount: userData.availableAmount,
 			url: (userData.extraExchange) ? userData.extraExchange.url : null
 		};
 	} else {
@@ -303,7 +308,7 @@ async function checkPayment(ctx) {
 		} catch (err) {
 			ctx.params.preExchangeId = userData.preExchange.id;
 			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
+			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, {
 				rut: userData.rut + '-' + userData.dv
 			});
 
@@ -338,10 +343,10 @@ async function checkPayment(ctx) {
 				await itauServices.validateClient(ctx);
 
 				ctx.params.preExchangeId = userData.preExchange.id;
-				ctx.params.spendingPoint = userData.spentPoints;
+				ctx.params.spendingAmount = userData.spentAmount;
 				ctx.params.extraExchangeAmount = userData.coPayment;
 				ctx.params.productName = userData.productName;
-				ctx.params.cpnr = userData.cpnr;
+				ctx.params.productId = userData.cpnr;
 				let exchangeData = await itauServices.requestExchange(ctx);
 				userData.postExchange = exchangeData;	
 
@@ -350,19 +355,19 @@ async function checkPayment(ctx) {
 					paymentId: exchangeData.id
 				};
 
-				await erpServices.addStatus(userData.paymentSession, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+				await erpServices.addStatus(userData.paymentSession, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, info);
 				await sessionPaymentServices.remove(ctx);
 	
 				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 	
-				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode, info,userData.spentPoints,Koa.config.codes.type.points, Koa.config.codes.method.itau,ctx.authSession);
+				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode, info, userData.spentAmount, Koa.config.codes.type.points, Koa.config.codes.method.itau, ctx.authSession);
 	
 				console.log(erpResponse);
 
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
-					await erpServices.addStatus(userData.paymentSession, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+					await erpServices.addStatus(userData.paymentSession, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, info);
 				} else {
-					await erpServices.addStatus(userData.paymentSession, Koa.config.states.erpFail, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, info);
+					await erpServices.addStatus(userData.paymentSession, Koa.config.states.erpFail, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, info);
 					slackService.log('info', JSON.stringify(erpResponse),'Smart Error');
 				}
 
@@ -372,6 +377,9 @@ async function checkPayment(ctx) {
 					await paymentModel.save(payment);
 				}
 
+				ctx.params.cochaCode = userData.cochaCode;
+				bookingServices.emit(ctx);
+				
 				ctx.body = {
 					status: 'Complete',
 					url: null
@@ -407,7 +415,7 @@ async function cancelPayment(ctx) {
 			ctx.params.dv = userData.dv;
 			ctx.params.preExchangeId = userData.preExchange.id;
 			let canceledPreExchangeData = await itauServices.cancelPreExchange(ctx);
-			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentPoints, {
+			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, {
 				rut: userData.rut + '-' + userData.dv
 			});
 			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment, {});			

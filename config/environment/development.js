@@ -36,15 +36,14 @@ module.exports = {
 	},
 	path: {
 		itau: {
-			validateRut: 'http://itau20apiprep.clop.cl/ValidaRutCanje',
-			generateDynamicKey: 'http://itau20apiprep.clop.cl/GeneraClaveDinamica',
-			checkDynamicKey: 'http://itau20apiprep.clop.cl/CompruebaClaveDinamica/:rut/:dv/:providerId/:dynamicKey/:dynamicKeyId',
-			startSession: 'http://itau20apiprep.clop.cl/InicioSesion/:rut/:dv/:providerId/:dynamicKeyId',
-			validateSessionFlow: 'http://itau20apiprep.clop.cl/ValidarFlujoCliente/:rut/:dv/:providerId/:dynamicKeyId/:dynamicKey/:pageNumber',
-			requestPreExchange: 'http://itau20apiprep.clop.cl/SolicitarPrecanje',
-			validateClient: 'http://itau20apiprep.clop.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
-			requestExchange: 'http://itau20apiprep.clop.cl/RealizarCanje',
-			cancelPreExchange: 'http://itau20apiprep.clop.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId'
+			validateRut: 'http://apicanjegencert.celmedia.cl/ValidaRutCanje',
+			generateDynamicKey: 'http://apicanjegencert.celmedia.cl/GeneraClaveDinamica',
+			checkDynamicKey: 'http://apicanjegencert.celmedia.cl/CompruebaClaveDinamica/:rut/:dv/:providerId/:dynamicKey/:dynamicKeyId',
+			validateSessionFlow: 'http://apicanjegencert.celmedia.cl/ValidarFlujoCliente/:rut/:dv/:providerId/:dynamicKeyId/:dynamicKey/:walletId/:pageNumber/:allowReload',
+			requestPreExchange: 'http://apicanjegencert.celmedia.cl/SolicitarPrecanje',
+			validateClient: 'http://apicanjegencert.celmedia.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
+			requestExchange: 'http://apicanjegencert.celmedia.cl/RealizarCanje',
+			cancelPreExchange: 'http://apicanjegencert.celmedia.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId/:productQuantity'
 		},
 		webpay: {
 			setPayment: './resources/onlinePayWS-desa.wsdl', // 'http://192.168.254.65:8080/process/onlinePayWS?wsdl',
@@ -53,6 +52,9 @@ module.exports = {
 		},
 		erp: {
 			redeem: './resources/canjeServiceWS-desa.wsdl' // 'http://192.168.254.65:8080/process/canjeServiceWS?wsdl'
+		},
+		booking: {
+			emit: 'http://booking-mid-desa.cocha.com/v1/emit/:sessionid/:cochaCode'
 		}
 	},
 	security: {
