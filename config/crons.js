@@ -4,7 +4,7 @@
 module.exports = {
 	checkPendingPayments: {
 		time: '0 * * * *',
-		service: 'ItauService',
+		service: 'ErpService',
 		action: 'checkPendingPayments'
 	}	
 };

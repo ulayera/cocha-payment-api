@@ -5,7 +5,7 @@ const sessionPaymentService = require('../services/SessionPaymentService');
 
 const validSrc = ['V+H', 'Vuelo', 'Hotel'];
 
-async function createPayment(ctx) {
+async function create(ctx) {
   let errors = [];
   if (!_.isString(ctx.params.ccode) || _.isEmpty(ctx.params.ccode)) {
     errors.push("Parameter 'ccode' is invalid: " + ctx.params.ccode);
@@ -34,6 +34,12 @@ async function createPayment(ctx) {
   if (!_.isString(ctx.params.contactEmail) || _.isEmpty(ctx.params.contactEmail)) {
     errors.push("Parameter 'contactEmail' is invalid: " + ctx.params.contactEmail);
   }
+  if (!_.isString(ctx.params.wappOkUrl) || _.isEmpty(ctx.params.wappOkUrl)) {
+    errors.push("Parameter 'wappOkUrl' is invalid: " + ctx.params.wappOkUrl);
+  }
+  if (!_.isString(ctx.params.wappErrorUrl) || _.isEmpty(ctx.params.wappErrorUrl)) {
+    errors.push("Parameter 'wappErrorUrl' is invalid: " + ctx.params.wappErrorUrl);
+  }
   if (!_.isNumber(ctx.params.totalRooms)) {
     errors.push("Parameter 'totalRooms' is invalid: " + ctx.params.totalRooms);
   }
@@ -59,6 +65,12 @@ async function createPayment(ctx) {
 	};
 }
 
+async function getStatus(ctx) {
+  let paymentSessionStatus = await sessionPaymentService.status(ctx);
+  ctx.body = paymentSessionStatus;
+}
+
 module.exports = {
-	createPayment: createPayment
+  create: create,
+  getStatus: getStatus
 };

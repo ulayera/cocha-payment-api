@@ -145,7 +145,7 @@ async function informPayment(_sessionId,_info,_amount,_type,_method,_workflowDat
 
 
 async function checkTransaction(_sessionToken,_xpnr){
-    //safety checks
+		//safety checks
 	let paymentData = await paymentModel.getBySessionXpnr(_sessionToken,_xpnr);
 	if(!paymentData.business){
 		throw {

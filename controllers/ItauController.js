@@ -3,7 +3,7 @@
 
 const sessionPaymentServices = require('../services/SessionPaymentService');
 const itauServices = require('../services/ItauService');
-const bookingServices = require('../services/BookingService');
+const confirmationServices = require('../services/ConfirmationService');
 const erpServices = require('../services/ErpService');
 const userSessionModel = require('../models/redis/UserSession');
 const paymentModel = require('../models/mongo/Payment');
@@ -25,7 +25,9 @@ async function getPaymentSession(ctx) {
 		numberRooms: paymentSessionData.data.rooms,
 		adults: paymentSessionData.data.adults,
 		children: paymentSessionData.data.children,
-		infants: paymentSessionData.data.infants
+		infants: paymentSessionData.data.infants,
+		pathOk: paymentSessionData.data.urlOk,
+		pathError: paymentSessionData.data.urlError
 	};
 }
 
@@ -218,7 +220,7 @@ async function executePayment(ctx) {
 			}
 
 			ctx.params.cochaCode = userData.cochaCode;
-			bookingServices.emit(ctx);
+			confirmationServices.reportPay(ctx);
 			await sessionPaymentServices.remove(ctx);
 		} else {
 			try {
@@ -313,7 +315,7 @@ async function checkPayment(ctx) {
 			});
 
 			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment, {});
-			await sessionPaymentServices.remove(ctx);
+			await sessionPaymentServices.remove(ctx, false);
 			throw err;
 		} 
 		
@@ -329,7 +331,11 @@ async function checkPayment(ctx) {
 
 			ctx.body = {
 				status: 'Pending',
-				url: userData.extraExchange.url
+				points: userData.availablePoints,
+				amount: userData.availableAmount,
+				url: userData.extraExchange.url,
+				okPath: null,
+				errPath: null
 			};
 		} else {
 			paymentStatusData.commerceCode = userData.extraExchange.commerceCode;
@@ -338,6 +344,7 @@ async function checkPayment(ctx) {
 				paymentData:paymentStatusData
 			});
 
+			let paymentSessionData = await sessionPaymentServices.get(ctx);
 			try {
 				ctx.params.dynamicKeyId = userData.dynamicKey.id;
 				await itauServices.validateClient(ctx);
@@ -356,13 +363,10 @@ async function checkPayment(ctx) {
 				};
 
 				await erpServices.addStatus(userData.paymentSession, Koa.config.states.paid, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, info);
-				await sessionPaymentServices.remove(ctx);
 	
 				await userSessionModel.updateUserSession(ctx.authSession.paymentIntentionId, userData);
 	
 				let erpResponse = await erpServices.informPayment(ctx.params.paymentSessionCode, info, userData.spentAmount, Koa.config.codes.type.points, Koa.config.codes.method.itau, ctx.authSession);
-	
-				console.log(erpResponse);
 
 				if(erpResponse && erpResponse.STATUS && erpResponse.STATUS === 'OK') {
 					await erpServices.addStatus(userData.paymentSession, Koa.config.states.closed, Koa.config.codes.type.points, Koa.config.codes.method.itau, Koa.config.codes.currency.clp, userData.preExchange.id, userData.spentAmount, info);
@@ -378,18 +382,26 @@ async function checkPayment(ctx) {
 				}
 
 				ctx.params.cochaCode = userData.cochaCode;
-				bookingServices.emit(ctx);
+				confirmationServices.reportPay(ctx);
 				
 				ctx.body = {
 					status: 'Complete',
-					url: null
+					points: userData.availablePoints,
+					amount: userData.availableAmount,
+					url: null,
+					okPath: paymentSessionData.data.urlOk,
+					errPath: paymentSessionData.data.urlError
 				};
 			} catch (err) {
 				Koa.log.error(err);
 				// Alguna forma de que quede pendiente validar el cobro de los puntos en un cron
 				ctx.body = {
 					status: 'PointsPending',
-					url: null
+					points: userData.availablePoints,
+					amount: userData.availableAmount,
+					url: null,
+					okPath: paymentSessionData.data.urlOk,
+					errPath: paymentSessionData.data.urlError
 				};
 			} finally {
 				await sessionPaymentServices.remove(ctx);
@@ -409,6 +421,7 @@ async function checkPayment(ctx) {
 async function cancelPayment(ctx) {
 	let userData = ctx.authSession.userSessionData;
 	ctx.params.paymentSessionCode = userData.paymentSession;
+	let paymentSessionData = await sessionPaymentServices.get(ctx);
 	if (await sessionPaymentServices.isValidAttempt(ctx) && ctx.authType === 'sessionOpen') {
 		if (userData.preExchange && !userData.postExchange && userData.extraExchange) {
 			ctx.params.rut = userData.rut;
@@ -420,22 +433,19 @@ async function cancelPayment(ctx) {
 			});
 			await erpServices.addStatus(userData.paymentSession, Koa.config.states.failed, Koa.config.codes.type.online, Koa.config.codes.method.webpay, Koa.config.codes.currency.clp, userData.extraExchange.tokenWebPay, userData.coPayment, {});			
 		}
-		await sessionPaymentServices.remove(ctx);
 		ctx.body = {
-			status: 'Complete'
+			status: 'Complete',
+			okPath: paymentSessionData.data.urlOk,
+			errPath: paymentSessionData.data.urlError
 		};
 	} else {
-		throw {
-			status: 401,
-			message: {
-				code: 'AuthError',
-				msg: 'Access denied'
-			}
+		ctx.body = {
+			status: 'Invalid',
+			okPath: paymentSessionData.data.urlOk,
+			errPath: paymentSessionData.data.urlError
 		};
 	}
 }
-
-
 
 module.exports = {
 	getPaymentSession: getPaymentSession,
@@ -447,7 +457,6 @@ module.exports = {
 	cancelPayment: cancelPayment,
 	test:test
 };
-
 
 async function test(ctx){
 	//ctx.body = await soapServices.getDetails(Koa.config.path.erp.redeem, 'canjeServiceWS');

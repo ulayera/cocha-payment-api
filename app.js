@@ -100,7 +100,7 @@ app.use(async (ctx, next) => {
 		}, ctx.authSession);
 
 		ctx.status = status;
-		ctx.body = (_.isString(message))? {msg: message, code: 'UnknowError'} : message;
+		ctx.body = (_.isString(message))? {msg: message, code: 'UnknownError'} : message;
 	}
 
 	ctx.response.remove('Connection');

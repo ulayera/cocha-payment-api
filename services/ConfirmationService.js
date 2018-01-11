@@ -4,8 +4,8 @@
 const webServices = require('cocha-external-services').webServices;
 const logService = require('./LogService');
 
-async function emit(_ctx) {
-	let url = Koa.config.path.booking.emit;
+async function reportPay(_ctx) {
+	let url = Koa.config.path.confirmation.reportPay;
 	let params = {
 		sessionid: _ctx.params.paymentSessionCode,
 		cochaCode: _ctx.params.cochaCode
@@ -24,5 +24,5 @@ async function emit(_ctx) {
 }
 
 module.exports = {
-	emit: emit
+	reportPay: reportPay
 };

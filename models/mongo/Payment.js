@@ -28,38 +28,42 @@ async function getBySessionXpnr(_id,_xpnr){
 }
 
 
-async function get(_id){
+async function get(_id) {
 	let query;
-	if(typeof _id === 'object'){
+	if (typeof _id === 'object') {
 		query = _id;
 	} else {
-		query = {'_id':_id};		
+		query = {
+			'_id': _id
+		};
 	}
 	return new Promise((resolve, reject) => {
-		this.model.findOne(query, 'cpnr xpnr email type status business total ttl state processed _id _v', function (err, payment) {
-	  		if (err) {
-		        Koa.log.error(err);
+		this.model.findOne(query, 'cpnr xpnr source email type status business total ttl state processed _id _v', function(
+			err, payment) {
+			if (err) {
+				Koa.log.error(err);
 				reject({
-		          msg: JSON.stringify(err),
-		          code: 'PaymentError',
-		          status:500
-		        });	
-	  		} else {
-	  			if(!payment){
-			        Koa.log.error(err);
+					msg: JSON.stringify(err),
+					code: 'PaymentError',
+					status: 500
+				});
+			} else {
+				if (!payment) {
+					Koa.log.error(err);
 					reject({
-			          msg: JSON.stringify(err),
-			          code: 'PaymentNotFound',
-			          status: 404,
-			          params: JSON.stringify(_id)
-			        });	
-	  			}else{
-		  			resolve(payment);
-	  			}
-	  		}
+						msg: JSON.stringify(err),
+						code: 'PaymentNotFound',
+						status: 404,
+						params: JSON.stringify(_id)
+					});
+				} else {
+					resolve(payment);
+				}
+			}
 		})
-	});	
+	});
 }
+
 
 async function getAllBy(_id){
 	let query;

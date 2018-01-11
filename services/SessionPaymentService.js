@@ -22,7 +22,9 @@ async function create(_ctx) {
       rooms: _ctx.params.totalRooms,
       adults: _ctx.params.adult,
       children: _ctx.params.child,
-      infants: _ctx.params.infant
+      infants: _ctx.params.infant,
+      urlOk: _ctx.params.wappOkUrl,
+      urlError: _ctx.params.wappErrorUrl
     },
 		attempts: {}
 	};
@@ -37,19 +39,98 @@ async function create(_ctx) {
   	processed: Koa.config.codes.processedFlag.open
   });
   payment = await paymentModel.save(payment);
+
   let sessionId = payment._id;
-  
+  session.data.urlOk += sessionId;
+  session.data.urlError += sessionId;
   await paymentSessionModel.setPaymentSession(sessionId, session);
+
   return sessionId; 
+}
+
+async function status(_ctx) {
+  try {
+    let paymentData = await paymentModel.getBySessionXpnr(_ctx.params.paymentSessionCode, _ctx.params.ccode);
+    
+    let paidAmount = 0;
+    _.each(paymentData.status, (record) => {
+      if (record.status === Koa.config.states.pending) {
+        let existsMatch = _.find(paymentData.status, (recd) => {
+          return (recd.id === record.id && recd.amount === record.amount && recd.method == record.method && recd.status === Koa.config.states.paid);
+        })
+        paidAmount += (existsMatch? parseFloat(existsMatch.amount) : 0);
+      }
+    });
+
+    if (paidAmount === 0) {
+      throw {code: 'NotPaid'};
+    } else
+    if (paidAmount !== parseFloat(paymentData.total)) {
+      throw {code: 'PartiallyPaid'};
+    } else 
+    if (!paymentData.business) {
+      throw {code: 'PaidWithoutBusiness'};
+    } else {
+      return {
+        status: 'Complete',
+        businessNumber: paymentData.business
+      };
+    }
+  } catch (err) {
+    if (err.code === 'PaymentNotFound') {
+      throw {
+				status: 404,
+				message: {
+					code: 'NotFoundError',
+					msg: 'Payment session don´t exist'
+				}
+			};
+    } else
+    if (err.code === 'NotPaid') {
+      throw {
+				message: {
+					code: 'NotPaidError',
+					msg: 'Bill not paid'
+				}
+			};
+    } else
+    if (err.code === 'PartiallyPaid') {
+      throw {
+				message: {
+					code: 'PartiallyPaidError',
+					msg: 'Payment is not complete'
+				}
+			};
+    } else
+    if (err.code === 'PaidWithoutBusiness') {
+      throw {
+				message: {
+					code: 'PaidWithoutBusinessError',
+					msg: 'Payment done, but not registered'
+				}
+			};
+    } else {
+      throw {
+				message: {
+					code: 'InternalError',
+					msg: 'Payment session status unknown'
+        },
+        data: err
+			};
+    }
+  }
 }
 
 async function get(_ctx) {
   return await paymentSessionModel.getPaymentSession(_ctx.params.paymentSessionCode);
 }
 
-async function remove(_ctx) {
+async function remove(_ctx, _delPaymentSession = true) {
   await attemptSessionModel.delAttemptSession(_ctx.params.paymentSessionCode)
-  return await paymentSessionModel.deletePaymentSession(_ctx.params.paymentSessionCode);
+  if (_delPaymentSession) {
+    await paymentSessionModel.deletePaymentSession(_ctx.params.paymentSessionCode);
+  }
+  return true;
 }
 
 async function isValidNewAttempt(_ctx) {
@@ -125,7 +206,8 @@ async function isValidAttempt(_ctx) {
 }
 
 module.exports = {
-	create: create,
+  create: create,
+  status: status,
   get: get,
   remove: remove,
 	isValidNewAttempt: isValidNewAttempt,

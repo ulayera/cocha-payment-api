@@ -53,8 +53,8 @@ module.exports = {
 		erp: {
 			redeem: './resources/canjeServiceWS-desa.wsdl' // 'http://192.168.254.65:8080/process/canjeServiceWS?wsdl'
 		},
-		booking: {
-			emit: 'https://booking-mid-qa.cocha.com/v1/emit/:sessionid/:cochaCode'
+		confirmation: {
+			reportPay: 'https://booking-mid-qa.cocha.com/v1/reportPay/:sessionid/:cochaCode'
 		}
 	},
 	security: {

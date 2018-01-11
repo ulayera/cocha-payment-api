@@ -53,8 +53,8 @@ module.exports = {
 		erp: {
 			redeem: './resources/canjeServiceWS-desa.wsdl' // 'http://192.168.254.65:8080/process/canjeServiceWS?wsdl'
 		},
-		booking: {
-			emit: 'http://booking-mid-desa.cocha.com/v1/emit/:sessionid/:cochaCode'
+		confirmation: {
+			reportPay: 'http://booking-mid-desa.cocha.com/v1/reportPay/:sessionid/:cochaCode'
 		}
 	},
 	security: {
@@ -89,7 +89,7 @@ module.exports = {
 		// insecureAuth: true
 	},
 	mongoConf: {
-		host: process.env.MONGODB_HOST ||  'mongo-db-desa.cocha.com',
+		host: process.env.MONGODB_HOST ||  'mongo-db-desa.cocha.com',
 		port: parseInt(process.env.MONGODB_PORT) || 27017,
 		database: process.env.MONGODB_DB || 'local',
 		username: process.env.MONGODB_USER || 'payment',

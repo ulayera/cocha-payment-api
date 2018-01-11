@@ -5,7 +5,13 @@ module.exports = {
 	'/setPayment': {
 		method: 'POST',
 		controller: 'PaymentController',
-		action: 'createPayment',
+		action: 'create',
+		auth: null
+	},
+	'/statusPayment/:paymentSessionCode/:ccode': {
+		method: 'GET',
+		controller: 'PaymentController',
+		action: 'getStatus',
 		auth: null
 	},
 	'/getPaymentSession/:paymentSessionCode': {
