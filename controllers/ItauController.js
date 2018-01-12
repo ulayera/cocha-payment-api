@@ -219,7 +219,6 @@ async function executePayment(ctx) {
 				throw err;
 			}
 
-			ctx.params.cochaCode = userData.cochaCode;
 			confirmationServices.reportPay(ctx);
 			await sessionPaymentServices.remove(ctx);
 		} else {
@@ -381,7 +380,6 @@ async function checkPayment(ctx) {
 					await paymentModel.save(payment);
 				}
 
-				ctx.params.cochaCode = userData.cochaCode;
 				confirmationServices.reportPay(ctx);
 				
 				ctx.body = {
