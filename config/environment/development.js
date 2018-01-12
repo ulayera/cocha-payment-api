@@ -54,7 +54,7 @@ module.exports = {
 			redeem: './resources/canjeServiceWS-desa.wsdl' // 'http://192.168.254.65:8080/process/canjeServiceWS?wsdl'
 		},
 		confirmation: {
-			reportPay: 'http://booking-mid-desa.cocha.com/v1/reportPay/:sessionid/:cochaCode'
+			reportPay: 'http://booking-mid-desa.cocha.com/v1/reportPay/:paymentSessionCode/:ccode'
 		}
 	},
 	security: {

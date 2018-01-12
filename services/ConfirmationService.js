@@ -7,8 +7,8 @@ const logService = require('./LogService');
 async function reportPay(_ctx) {
 	let url = Koa.config.path.confirmation.reportPay;
 	let params = {
-		sessionid: _ctx.params.paymentSessionCode,
-		cochaCode: _ctx.params.cochaCode
+		paymentSessionCode: _ctx.params.paymentSessionCode,
+		ccode: _ctx.params.cochaCode
 	};
   _ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
