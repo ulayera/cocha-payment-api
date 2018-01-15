@@ -5,7 +5,10 @@ const paymentSessionModel = require('../models/redis/PaymentSession');
 const attemptSessionModel = require('../models/redis/AttemptSession');
 const paymentModel = require('../models/mongo/Payment');
 
+const codeSrc = Koa.config.codes.source;
+
 async function create(_ctx) {
+  let code = codeSrc[_ctx.params.paymentSrc];
   let now = new Date();
 	let session = {
 		data: {
@@ -41,8 +44,8 @@ async function create(_ctx) {
   payment = await paymentModel.save(payment);
 
   let sessionId = payment._id;
-  session.data.urlOk += sessionId;
-  session.data.urlError += sessionId;
+  session.data.urlOk += (code + sessionId);
+  session.data.urlError += (code + sessionId);
   await paymentSessionModel.setPaymentSession(sessionId, session);
 
   return sessionId; 
