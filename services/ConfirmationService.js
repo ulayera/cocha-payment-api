@@ -4,10 +4,13 @@
 const webServices = require('cocha-external-services').webServices;
 const logService = require('./LogService');
 
+const codeSrc = Koa.config.codes.source;
+
 async function reportPay(_ctx) {
+	let code = codeSrc[_ctx.authSession.userSessionData.productSrc];
 	let url = Koa.config.path.confirmation.reportPay;
 	let params = {
-		paymentSessionCode: _ctx.params.paymentSessionCode
+		paymentSessionCode: code + _ctx.params.paymentSessionCode
 	};
   _ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {

@@ -3,7 +3,7 @@
 
 const sessionPaymentService = require('../services/SessionPaymentService');
 
-const validSrc = ['V+H', 'Vuelo', 'Hotel'];
+const validSrc = Object.keys(Koa.config.codes.source);
 
 async function create(ctx) {
   let errors = [];

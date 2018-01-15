@@ -32,6 +32,11 @@ module.exports = {
 			open:0,
 			pending:1,
 			closed:2
+		},
+		source: {
+			VyH: 'D', 
+			Vuelo: 'F', 
+			Hotel: 'H'
 		}
 	},
 	path: {
