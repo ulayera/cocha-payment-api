@@ -61,7 +61,7 @@ async function sendDynamicKey(ctx) {
 			status: 401,
 			message: {
 				code: 'AttemptsError',
-				msg: 'Estimado Cliente, ha excedido el número de intentos'
+				msg: 'You have exceeded the number of attempts'
 			}
 		};
 	}
@@ -99,7 +99,7 @@ async function validateDynamicKey(ctx) {
 				status: 400,
 				message: {
 					code: 'AttemptsError',
-					msg: 'Estimado Cliente, ha excedido el número de intentos'
+					msg: 'You have exceeded the number of attempts'
 				}
 			};
 		} else {
@@ -291,7 +291,7 @@ async function checkPayment(ctx) {
 						status: 500,
 						message: {
 							code: 'PaymentAttemptsError',
-							msg: 'Estimado Cliente, ha excedido el número de intentos de pago'
+							msg: 'You have exceeded the number of payment attempts'
 						}
 					};
 				} else {

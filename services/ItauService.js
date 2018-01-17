@@ -288,10 +288,10 @@ function getErrorByType(_meta) {
 		code = 'ActionError-' + _meta.code;
 	} else
 	if (status === 400 || status === 401 || status === 404 || status === 405 || status === 429) {
-		description = `Problema al procesar la peticion, Data: ${JSON.stringify(_meta)}`;
+		description = `Problem processing the request, Data: ${JSON.stringify(_meta)}`;
 		code = 'ProcessError';
 	} else {
-		description = `Error interno, no es posible procesar la peticion, Data: ${JSON.stringify(_meta)}`;
+		description = `Internal error, it is not possible to process the request, Data: ${JSON.stringify(_meta)}`;
 		code = 'InternalError';
 	}
 
