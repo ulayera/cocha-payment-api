@@ -53,7 +53,7 @@ module.exports = {
 		webpay: { //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
 			setPayment: './resources/onlinePayWS-prod.wsdl', // 'http://192.168.254.66:8080/process/onlinePayWS?wsdl',
 			getPaymentStatus: './resources/getPayStatusWS-prod.wsdl', //'http://192.168.254.66:8080/process/getPayStatusWS?wsdl',
-			processPayment: 'www1.cocha.com/Boton_Pago_PP/onlinePay.asp?token=:token'
+			processPayment: 'https://www1.cocha.com/Boton_Pago_PP/onlinePay.asp?token=:token'
 		},
 		erp: { //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
 			redeem: './resources/canjeServiceWS-prod.wsdl' // 'http://192.168.254.66:8080/process/canjeServiceWS?wsdl'

@@ -53,7 +53,7 @@ module.exports = {
 		webpay: {
 			setPayment: './resources/onlinePayWS-desa.wsdl', // 'http://192.168.254.65:8080/process/onlinePayWS?wsdl',
 			getPaymentStatus: './resources/getPayStatusWS-desa.wsdl', //'http://192.168.254.65:8080/process/getPayStatusWS?wsdl',
-			processPayment: 'www1-desa.cocha.com/Boton_Pago_PP/onlinePay.asp?token=:token'
+			processPayment: 'http://www1-desa.cocha.com/Boton_Pago_PP/onlinePay.asp?token=:token'
 		},
 		erp: {
 			redeem: './resources/canjeServiceWS-desa.wsdl' // 'http://192.168.254.65:8080/process/canjeServiceWS?wsdl'
