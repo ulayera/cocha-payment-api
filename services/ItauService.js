@@ -18,7 +18,7 @@ async function validateRut(_ctx) {
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
+			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA || result.response.MENSAJE});
 			if (err) {
 				reject(err);
 			} else {
