@@ -94,11 +94,11 @@ module.exports = {
 		// insecureAuth: true
 	},
 	mongoConf: {
-		host: process.env.MONGODB_HOST ||  'mongo-db-desa.cocha.com',
-		port: parseInt(process.env.MONGODB_PORT) || 27017,
-		database: process.env.MONGODB_DB || 'local',
-		username: process.env.MONGODB_USER || 'payment',
-		password: process.env.MONGODB_PASS || 'payment1234',
+		host: process.env.MONGODB_PAYMENT_HOST ||  'mongo-db-desa.cocha.com',
+		port: parseInt(process.env.MONGODB_PAYMENT_PORT) || 27017,
+		database: process.env.MONGODB_PAYMENT_DB || 'payment',
+		username: process.env.MONGODB_PAYMENT_USER || 'payment',
+		password: process.env.MONGODB_PAYMENT_PASS || 'p4ym3nt',
 		ttlCron: 1200
 	}
 };
