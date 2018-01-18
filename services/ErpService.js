@@ -116,7 +116,7 @@ async function informPayment(_sessionId,_info,_amount,_type,_method,_workflowDat
 	let data = await paymentModel.get(_sessionId);
 	let params = {
 		 TOKEN:_sessionId
-		,EMAIL:data.email
+		,EMAIL:Koa.config.productEmail.flighthotel
 		,XPNR:data.xpnr
 		,PAYMENTS:{
 			PAYMENT:{

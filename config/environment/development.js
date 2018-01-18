@@ -6,6 +6,10 @@ module.exports = {
 	commerceCodes: {
 		cocha: '597026016959'
 	},
+	productEmail:{
+		flight:'agenteinternet@cocha.com',
+		flighthotel:'agenteinternet@cocha.com'
+	},
 	states: {
 		paid: 'PAGADO',
 		closed: 'CERRADO',
