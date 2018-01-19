@@ -63,7 +63,7 @@ module.exports = {
 			redeem: './resources/canjeServiceWS-prod.wsdl' // 'http://192.168.254.66:8080/process/canjeServiceWS?wsdl'
 		},
 		confirmation: {
-			reportPay: 'https://booking-mid.cocha.com/v1/reportPay/:paymentSessionCode'
+			reportPay: 'https://mid.cocha.com/confirmation/v1/reportPay/:paymentSessionCode'
 		}
 	},
 	security: {
