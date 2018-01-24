@@ -18,10 +18,17 @@ async function validateRut(_ctx) {
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA || result.response.MENSAJE});
+			let status;
+			let message;
 			if (err) {
-				reject(err);
+				status = Number(err.response.meta.code);
+				message = err.response.meta.message;				
 			} else {
+				status = Number(result.response.COD_RESPUESTA || result.meta.code);
+				message = result.response.MSJ_RESPUESTA || result.meta.message;
+			}
+
+			if (status === 200 || status === 202) {
 				resolve({
 					rut: result.response.CLI_RUT,
 					dv: result.response.CLI_DV,
@@ -33,6 +40,28 @@ async function validateRut(_ctx) {
 					segmentId: result.response.CLI_SEGMENTO_ID,
 					segmentName: result.response.CLI_SEGMENTO_NMB
         });
+			} else {
+				let code, description;
+				if (status > 99 && status < 200) {
+					description = `The rut is not valid, Data: ${status} - ${message}`;
+					code = 'ValidateRutError-' + status;
+					status = 400;					
+				} else
+				if (status > 399 && status < 500) {
+					description = `Problem processing the request, Data: ${status} - ${message}`;
+					code = 'ValidateRutProcessError';
+				} else {
+					description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
+					code = 'InternalError';
+				}
+			
+				reject({
+					status: status,
+					message: {
+						code: code,
+						msg: description
+					}
+				});
 			}
 		}, _ctx.authSession);
 	});
@@ -56,17 +85,41 @@ async function generateDynamicKey(_ctx) {
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
+			let status;
+			let message;
 			if (err) {
-				err = getErrorByType(err.data.msg.meta);
-				reject(err);
+				status = Number(err.response.meta.code);
+				message = err.response.meta.message;				
 			} else {
+				status = Number(result.response.COD_RESPUESTA || result.meta.code);
+				message = result.response.MSJ_RESPUESTA || result.meta.message;
+			}
+
+			if (status === 200 || status === 202) {
 				resolve({
-          key: result.response.CLV_CODIGO,
+					key: result.response.CLV_CODIGO,
           id: result.response.CLV_ID,
 					generationStatus: result.response.CLV_ESTADO,
 					attempts: +result.response.CLV_NUM_INTENTO,
           expiration: result.response.CLV_FCH_EXPIRA_CLAVE
         });
+			} else {
+				let code, description;
+				if (status > 399 && status < 500) {
+					description = `Problem processing the request, Data: ${status} - ${message}`;
+					code = 'SendKeyProcessError';
+				} else {
+					description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
+					code = 'InternalError';
+				}
+			
+				reject({
+					status: status,
+					message: {
+						code: code,
+						msg: description
+					}
+				});
 			}
 		}, _ctx.authSession);
 	});
@@ -90,14 +143,43 @@ async function checkDynamicKey(_ctx) {
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CLV_ESTADO, message: result.response.CLV_MENSAJE});
+			let status;
+			let message;
 			if (err) {
-				reject(err);
+				status = Number(err.response.meta.code);
+				message = err.response.meta.message;				
 			} else {
+				status = Number(result.response.CLV_ESTADO || result.meta.code);
+				message = result.response.CLV_MENSAJE || result.meta.message;
+			}
+
+			if (status === 200 || status === 202) {
 				resolve({
 					status: result.response.CLV_MENSAJE,
 					sessionExpiration: result.response.CLV_FCH_EXPIRA_SESION
         });
+			} else {
+				let code, description;
+				if (status > 99 && status < 200) {
+					description = `The dinamic key is not valid, Data: ${status} - ${message}`;
+					code = 'CheckKeyError-' + status;
+					status = 400;					
+				} else
+				if (status > 399 && status < 500) {
+					description = `Problem processing the request, Data: ${status} - ${message}`;
+					code = 'CheckKeyProcessError';
+				} else {
+					description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
+					code = 'InternalError';
+				}
+			
+				reject({
+					status: status,
+					message: {
+						code: code,
+						msg: description
+					}
+				});
 			}
 		}, _ctx.authSession);
 	});
@@ -124,12 +206,19 @@ async function validateSessionFlow(_ctx) {
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.COD_RESPUESTA, message: result.response.MSJ_RESPUESTA});
+			let status;
+			let message;
 			if (err) {
-				reject(err);
+				status = Number(err.response.meta.code);
+				message = err.response.meta.message;				
 			} else {
+				status = Number(result.response.COD_RESPUESTA || result.meta.code);
+				message = result.response.MSJ_RESPUESTA || result.meta.message;
+			}
+
+			if (status === 200 || status === 202) {
 				resolve({
-          rut: result.response.CLI_RUT,
+					rut: result.response.CLI_RUT,
           dv: result.response.CLI_DV,
 					phoneNumber: result.response.CLI_TELEFONO,
 					email: result.response.CLI_MAIL,
@@ -137,6 +226,28 @@ async function validateSessionFlow(_ctx) {
 					availableAmount: +result.response.CLI_SALDO_CONVERSION,
 					typeAmount: result.response.CLI_TIPO_CONVERSION
         });
+			} else {
+				let code, description;
+				if (status > 99 && status < 200) {
+					description = `Problem in the validation of the client session, Data: ${status} - ${message}`;
+					code = 'ValidateSessionError-' + status;
+					status = 400;					
+				} else
+				if (status > 399 && status < 500) {
+					description = `Problem processing the request, Data: ${status} - ${message}`;
+					code = 'ValidateSessionProcessError';
+				} else {
+					description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
+					code = 'InternalError';
+				}
+			
+				reject({
+					status: status,
+					message: {
+						code: code,
+						msg: description
+					}
+				});
 			}
 		}, _ctx.authSession);
 	});
@@ -163,16 +274,45 @@ async function requestPreExchange(_ctx) {
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.PRECANJE_ESTADO, message: result.response.PRECANJE_MENSAJE});
+			let status;
+			let message;
 			if (err) {
-				reject(err);
+				status = Number(err.response.meta.code);
+				message = err.response.meta.message;				
 			} else {
+				status = Number(result.response.PRECANJE_ESTADO || result.meta.code);
+				message = result.response.PRECANJE_MENSAJE || result.meta.message;
+			}
+
+			if (status === 200 || status === 202) {
 				resolve({
 					status: result.response.PRECANJE_MENSAJE,
 					id: result.response.PRECANJE_ID,
 					availableAmount: +result.response.PRECANJE_SALDO_CONVERSION,
 					spentAmount: +result.response.PRECANJE_RESERVADO_CONVERSION
         });
+			} else {
+				let code, description;
+				if (status > 99 && status < 200) {
+					description = `It was not possible to make the exchange, Data: ${status} - ${message}`;
+					code = 'PreExchangeError-' + status;
+					status = 400;					
+				} else
+				if (status > 399 && status < 500) {
+					description = `Problem processing the request, Data: ${status} - ${message}`;
+					code = 'PreExchangeProcessError';
+				} else {
+					description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
+					code = 'InternalError';
+				}
+			
+				reject({
+					status: status,
+					message: {
+						code: code,
+						msg: description
+					}
+				});
 			}
 		}, _ctx.authSession);
 	});
@@ -195,13 +335,42 @@ async function validateClient(_ctx) {
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CLI_ESTADO, message: result.response.CLI_MENSAJE});
+			let status;
+			let message;
 			if (err) {
-				reject(err);
+				status = Number(err.response.meta.code);
+				message = err.response.meta.message;				
 			} else {
+				status = Number(result.response.CLI_ESTADO || result.meta.code);
+				message = result.response.CLI_MENSAJE || result.meta.message;
+			}
+
+			if (status === 200 || status === 202) {
 				resolve({
-          status: result.response.CLI_MENSAJE
+					status: result.response.CLI_MENSAJE
         });
+			} else {
+				let code, description;
+				if (status > 99 && status < 200) {
+					description = `Problem in the validation of the client, Data: ${status} - ${message}`;
+					code = 'ValidateClientError-' + status;
+					status = 400;					
+				} else
+				if (status > 399 && status < 500) {
+					description = `Problem processing the request, Data: ${status} - ${message}`;
+					code = 'ValidateClientProcessError';
+				} else {
+					description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
+					code = 'InternalError';
+				}
+			
+				reject({
+					status: status,
+					message: {
+						code: code,
+						msg: description
+					}
+				});
 			}
 		}, _ctx.authSession);
 	});
@@ -228,15 +397,39 @@ async function requestExchange(_ctx) {
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.post('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});
+			let status;
+			let message;
 			if (err) {
-				reject(err);
+				status = Number(err.response.meta.code);
+				message = err.response.meta.message;				
 			} else {
+				status = Number(result.response.CNJ_ESTADO || result.meta.code);
+				message = result.response.CNJ_MENSAJE || result.meta.message;
+			}
+
+			if (status === 200 || status === 202) {
 				resolve({
 					status: result.response.CNJ_MENSAJE,
 					id: result.response.CNJ_ID,
 					generated: result.response.CNJ_FECHA
         });
+			} else {
+				let code, description;
+				if (status > 399 && status < 500) {
+					description = `Problem processing the request, Data: ${status} - ${message}`;
+					code = 'ExchangeProcessError';
+				} else {
+					description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
+					code = 'InternalError';
+				}
+			
+				reject({
+					status: status,
+					message: {
+						code: code,
+						msg: description
+					}
+				});
 			}
 		}, _ctx.authSession);
 	});
@@ -261,48 +454,42 @@ async function cancelPreExchange(_ctx) {
 	_ctx.authSession.logFunction = logService.logCallToService;
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, header, (err, result) => {
-			err = getErrorByType((err) ? ((_.isString(err.data.msg))? JSON.parse(err.data.msg).meta : err.data.msg.meta) : {code: result.response.CNJ_ESTADO, message: result.response.CNJ_MENSAJE});
+			let status;
+			let message;
 			if (err) {
-				reject(err);
+				status = Number(err.response.meta.code);
+				message = err.response.meta.message;				
 			} else {
+				status = Number(result.response.CNJ_ESTADO || result.meta.code);
+				message = result.response.CNJ_MENSAJE || result.meta.message;
+			}
+
+			if (status === 200 || status === 202) {
 				resolve({
-          status: result.response.CNJ_MENSAJE
+					status: result.response.CNJ_MENSAJE
         });
+			} else {
+				let code, description;
+				if (status > 399 && status < 500) {
+					description = `Problem processing the request, Data: ${status} - ${message}`;
+					code = 'CancelPreExchangeProcessError';
+				} else {
+					description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
+					code = 'InternalError';
+				}
+			
+				reject({
+					status: status,
+					message: {
+						code: code,
+						msg: description
+					}
+				});
 			}
 		}, _ctx.authSession);
 	});
 
 	return data;
-}
-
-function getErrorByType(_meta) {
-	let status = Number(_meta.code);
-	let description;
-	let code;
-	if (status === 200 || status === 202) {
-		return null;
-	} else
-	if (status === 150 || status === 151 || status === 152 || status === 153) {
-		status = 400;
-		description = _meta.message;
-		code = 'ActionError-' + _meta.code;
-	} else
-	if (status === 400 || status === 401 || status === 404 || status === 405 || status === 429) {
-		description = `Problem processing the request, Data: ${JSON.stringify(_meta)}`;
-		code = 'ProcessError';
-	} else {
-		description = `Internal error, it is not possible to process the request, Data: ${JSON.stringify(_meta)}`;
-		code = 'InternalError';
-	}
-
-	return {
-		status: status,
-		message: {
-			code: code,
-			msg: description
-		},
-		data: _meta
-	};
 }
 
 module.exports = {

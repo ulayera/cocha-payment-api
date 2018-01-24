@@ -60,8 +60,8 @@ async function sendDynamicKey(ctx) {
 		throw {
 			status: 401,
 			message: {
-				code: 'AttemptsError',
-				msg: 'You have exceeded the number of attempts'
+				code: 'SendKeyAttemptsError',
+				msg: 'You have exceeded the number of attempts for send dynamic key'
 			}
 		};
 	}
@@ -88,24 +88,10 @@ async function validateDynamicKey(ctx) {
 	ctx.params.rut = userData.rut;
 	ctx.params.dv = userData.dv;
 	ctx.params.dynamicKeyId = userData.dynamicKey.id;
-	try {
-		let checkDynamicKeyData = await itauServices.checkDynamicKey(ctx);
-		userData.dynamicKey.checkStatus = checkDynamicKeyData.status;
-		userData.expiration = checkDynamicKeyData.sessionExpiration;
-	} catch (err) {
-		if ((err.code === 'ActionError-150' || err.code === 'ActionError-151') && userData.dynamicKey.attempts > 2) {
-			Koa.log.error(err);
-			throw {
-				status: 400,
-				message: {
-					code: 'AttemptsError',
-					msg: 'You have exceeded the number of attempts'
-				}
-			};
-		} else {
-			throw err;
-		}
-	}
+
+	let checkDynamicKeyData = await itauServices.checkDynamicKey(ctx);
+	userData.dynamicKey.checkStatus = checkDynamicKeyData.status;
+	userData.expiration = checkDynamicKeyData.sessionExpiration;
 
 	let sessionFlowData = await itauServices.validateSessionFlow(ctx);
 	userData.totalPoints = sessionFlowData.availablePoints;
