@@ -45,22 +45,22 @@ module.exports = {
 	},
 	path: {
 		itau: {
-			validateRut: 'http://apicanjegencert.celmedia.cl/ValidaRutCanje',
-			generateDynamicKey: 'http://apicanjegencert.celmedia.cl/GeneraClaveDinamica',
-			checkDynamicKey: 'http://apicanjegencert.celmedia.cl/CompruebaClaveDinamica/:rut/:dv/:providerId/:dynamicKey/:dynamicKeyId',
-			validateSessionFlow: 'http://apicanjegencert.celmedia.cl/ValidarFlujoCliente/:rut/:dv/:providerId/:dynamicKeyId/:dynamicKey/:walletId/:pageNumber/:allowReload',
-			requestPreExchange: 'http://apicanjegencert.celmedia.cl/SolicitarPrecanje',
-			validateClient: 'http://apicanjegencert.celmedia.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
-			requestExchange: 'http://apicanjegencert.celmedia.cl/RealizarCanje',
-			cancelPreExchange: 'http://apicanjegencert.celmedia.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId/:productQuantity'
+			validateRut: 'http://apicanjegenprep.celmedia.cl/ValidaRutCanje',
+			generateDynamicKey: 'http://apicanjegenprep.celmedia.cl/GeneraClaveDinamica',
+			checkDynamicKey: 'http://apicanjegenprep.celmedia.cl/CompruebaClaveDinamica/:rut/:dv/:providerId/:dynamicKey/:dynamicKeyId',
+			validateSessionFlow: 'http://apicanjegenprep.celmedia.cl/ValidarFlujoCliente/:rut/:dv/:providerId/:dynamicKeyId/:dynamicKey/:walletId/:pageNumber/:allowReload',
+			requestPreExchange: 'http://apicanjegenprep.celmedia.cl/SolicitarPrecanje',
+			validateClient: 'http://apicanjegenprep.celmedia.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
+			requestExchange: 'http://apicanjegenprep.celmedia.cl/RealizarCanje',
+			cancelPreExchange: 'http://apicanjegenprep.celmedia.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId/:productQuantity'
 		},
-		webpay: { //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
+		webpay: {
 			setPayment: './resources/onlinePayWS-prod.wsdl', // 'http://192.168.254.66:8080/process/onlinePayWS?wsdl',
 			getPaymentStatus: './resources/getPayStatusWS-prod.wsdl', //'http://192.168.254.66:8080/process/getPayStatusWS?wsdl',
 			processPayment: 'https://www1.cocha.com/Boton_Pago_PP/onlinePay.asp?token=:token'
 		},
 		erp: { //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
-			redeem: './resources/canjeServiceWS-prod.wsdl' // 'http://192.168.254.66:8080/process/canjeServiceWS?wsdl'
+			redeem: './resources/canjeServiceWS-desa.wsdl' // 'http://192.168.254.66:8080/process/canjeServiceWS?wsdl'
 		},
 		confirmation: {
 			reportPay: 'https://mid.cocha.com/confirmation/v1/reportPay/:paymentSessionCode'
