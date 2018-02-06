@@ -37,13 +37,12 @@ async function isBusinessAssigned(_sessionToken) {
 async function assignTransaction(_sessionToken,_xpnr,_businessNumber) {
     //safety checks
 	let paymentData = await paymentModel.getBySessionXpnr(_sessionToken,_xpnr);
-	/*
 	if(paymentData.business){
 		throw {
 			code:"BusinessAlreadyAssigned",
 			business:paymentData.business
 		};
-	}*/
+	}
 	let payments = paymentAnalysis(paymentData);
 	if(payments.isConsistent){
 		if(payments.isPaid){
@@ -145,7 +144,12 @@ async function informPayment(_sessionId,_info,_amount,_type,_method,_workflowDat
 
 
 async function checkTransaction(_sessionToken,_xpnr){
-		//safety checks
+	//safety checks
+	console.log(env);
+	//if(env === 'development'){
+	// _sessionToken = "";
+	//	_xpnr = "";
+	//}
 	let paymentData = await paymentModel.getBySessionXpnr(_sessionToken,_xpnr);
 	if(!paymentData.business){
 		throw {
