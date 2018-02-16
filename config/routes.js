@@ -8,7 +8,7 @@ module.exports = {
 		action: 'create',
 		auth: null
 	},
-	'/statusPayment/:paymentSessionCode/:ccode': {
+	'/statusPayment/:paymentSessionCode/:appCode': {
 		method: 'GET',
 		controller: 'PaymentController',
 		action: 'getStatus',

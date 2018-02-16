@@ -66,8 +66,19 @@ async function create(ctx) {
 }
 
 async function getStatus(ctx) {
-  let paymentSessionStatus = await sessionPaymentService.status(ctx);
-  ctx.body = paymentSessionStatus;
+  if (ctx.params.appCode === Koa.config.appHashCode) {
+    let paymentSessionStatus = await sessionPaymentService.status(ctx);
+    paymentSessionStatus.status = 'Complete';
+    ctx.body = paymentSessionStatus;
+  } else {
+    throw {
+			status: 401,
+			message: {
+				code: 'AuthError',
+				msg: 'Access denied'
+			}
+		};
+  } 
 }
 
 module.exports = {

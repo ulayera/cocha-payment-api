@@ -53,7 +53,7 @@ async function create(_ctx) {
 
 async function status(_ctx) {
   try {
-    let paymentData = await paymentModel.getBySessionXpnr(_ctx.params.paymentSessionCode, _ctx.params.ccode);
+    let paymentData = await paymentModel.get(_ctx.params.paymentSessionCode);
     
     let paidAmount = 0;
     _.each(paymentData.status, (record) => {
@@ -75,8 +75,8 @@ async function status(_ctx) {
       throw {code: 'PaidWithoutBusiness'};
     } else {
       return {
-        status: 'Complete',
-        businessNumber: paymentData.business
+        businessNumber: paymentData.business,
+        ccode: paymentData.xpnr
       };
     }
   } catch (err) {

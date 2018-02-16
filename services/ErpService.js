@@ -145,11 +145,11 @@ async function informPayment(_sessionId,_info,_amount,_type,_method,_workflowDat
 
 async function checkTransaction(_sessionToken,_xpnr){
 	//safety checks
-	console.log(env);
-	if(env === 'development'){//maria paz needed dis
-		_sessionToken = "5a7a030ef0fc335e08b6addb";
-		_xpnr = "P013943";
-	}
+	// console.log(env);
+	// if(env === 'development'){//maria paz needed dis
+	// 	_sessionToken = "5a7a030ef0fc335e08b6addb";
+	// 	_xpnr = "P013943";
+	// }
 	let paymentData = await paymentModel.getBySessionXpnr(_sessionToken,_xpnr);
 	if(!paymentData.business){
 		throw {

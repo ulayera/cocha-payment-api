@@ -3,6 +3,7 @@
 module.exports = {
 	appName: 'PAYMENTS',
 	paymentWappUrl: 'https://pagos.cocha.com/:sessionid',
+	appHashCode: process.env.PAYMENT_APP_CODE || 'C0CH4P4YM3NT.03c71e74f6bd1f32534d6289e44d7869',	
 	commerceCodes: {
 		cocha: '597027395651'
 	},

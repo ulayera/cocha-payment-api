@@ -1,7 +1,7 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
 
-let sumologic = require('cocha-logger-services')('flight+hotel');
+let sumologic = require('@cocha/cocha-logger-services')(Koa.config.appName);
 
 let originalStackTrace;
 function getStack() {
