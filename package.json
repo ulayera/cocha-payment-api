@@ -5,8 +5,8 @@
   "description": "API used for COCHA payment app",
   "main": "app.js",
   "dependencies": {
-    "cocha-external-services": "git+ssh://git@bitbucket.org/cocha-digital/cocha-external-services.git",
     "@cocha/cocha-logger-services": "git+ssh://git@bitbucket.org/cocha-digital/cocha-logger-service.git",
+    "cocha-external-services": "git+ssh://git@bitbucket.org/cocha-digital/cocha-external-services.git",
     "cron": "^1.3.0",
     "glob": "^7.1.2",
     "koa": "^2.3.0",
