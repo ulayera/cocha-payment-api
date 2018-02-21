@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="urn:externalServices/process/canje/canjeServiceWS" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="urn:externalServices/process/canje/canjeServiceWS" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="urn:externalServices/process/canje/canjeServiceWS" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:element name="canjeServiceRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="TOKEN" type="xsd:string"/>
+                        <xsd:element name="EMAIL" type="xsd:string"/>
+                        <xsd:element name="XPNR" type="xsd:string"/>
+                        <xsd:element name="PAYMENTS">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="PAYMENT">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="TYPE" type="xsd:string"/>
+                                    <xsd:element name="METHOD" type="xsd:string"/>
+                                    <xsd:element name="STORECODE" type="xsd:string"/>
+                                    <xsd:element name="RUT" type="xsd:string"/>
+                                    <xsd:element name="AMOUNT" type="xsd:integer"/>
+                                    <xsd:element name="AUTHORIZATIONCODE" type="xsd:string"/>
+                                    <xsd:element name="PAYMENTID" type="xsd:string"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="canjeServiceResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="STATUS" type="xsd:string"/>
+                        <xsd:element name="MESSAGE" type="xsd:string"/>
+                        <xsd:element name="DATA" type="xsd:anyType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="canjeServiceWSResponse">
+    <wsdl:part name="DefaultOutput" element="canjeServiceResponse"/>
+  </wsdl:message>
+  <wsdl:message name="canjeServiceWSRequest">
+    <wsdl:part name="DefaultInput" element="canjeServiceRequest"/>
+  </wsdl:message>
+  <wsdl:portType name="canjeServiceWSPortType">
+    <wsdl:operation name="canjeServiceWS">
+      <wsdl:input message="tns:canjeServiceWSRequest"/>
+      <wsdl:output message="tns:canjeServiceWSResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="canjeServiceWSSOAPBinding" type="tns:canjeServiceWSPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="canjeServiceWS">
+      <soap:operation soapAction="urn:externalServices/process/canje/canjeServiceWS:canjeServiceWSPortType:canjeServiceWSRequest"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="canjeServiceWSService">
+    <wsdl:port name="canjeServiceWSPort" binding="tns:canjeServiceWSSOAPBinding">
+      <soap:address location="http://192.168.254.66:8080/process/canjeServiceWS"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

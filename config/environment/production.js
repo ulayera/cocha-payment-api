@@ -61,7 +61,7 @@ module.exports = {
 			processPayment: 'https://www1.cocha.com/Boton_Pago_PP/onlinePay.asp?token=:token'
 		},
 		erp: { //Buscar los wsdl y agregarlos a los recursos cuando esten en prod
-			redeem: './resources/canjeServiceWS-desa.wsdl' // 'http://192.168.254.66:8080/process/canjeServiceWS?wsdl'
+			redeem: './resources/canjeServiceWS-prod.wsdl' // 'http://192.168.254.66:8080/process/canjeServiceWS?wsdl'
 		},
 		confirmation: {
 			reportPay: 'https://mid.cocha.com/confirmation/v1/reportPay/:paymentSessionCode'
