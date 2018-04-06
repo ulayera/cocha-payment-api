@@ -21,7 +21,8 @@
     "redis": "^2.6.0-1",
     "request": "^2.81.0",
     "request-promise": "^4.2.2",
-    "soap": "^0.23.0"
+    "soap": "^0.23.0",
+    "uglify-js": "^3.3.16"
   },
   "devDependencies": {
     "jest": "^15.1.1",

@@ -223,7 +223,7 @@ async function checkPendingPayments(){
 					console.log("err",JSON.stringify(err));
 					if(err && err.message && err.message.code && err.message.code.toString().indexOf('ActionError') !== -1){
 						data.processed = Koa.config.codes.processedFlag.closed;
-						await paymentModel.save(data);					
+						await paymentModel.save(data);
 					} else {
 						slackService.log('info', JSON.stringify(err), 'Cron Itau');
 						//leave them pending, someone(?) should take action from the slack alert

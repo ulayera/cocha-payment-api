@@ -87,9 +87,51 @@ module.exports = {
 		controller: 'ErpController',
 		action: 'checkTransaction'
 	},
-	'/test' : {
-		method: 'GET' ,
+	'/test': {
+		method: 'GET',
 		controller: 'ItauController',
 		action: 'test'
-	}
+	},
+  /* public */
+  "/sessions": {
+    method: 'POST',
+    controller: 'SessionsController',
+    action: 'createSession',
+    auth: null
+  },
+  /* public */
+  "/sessions/:sessionId/status": {
+    method: 'GET',
+    controller: 'SessionsController',
+    action: 'checkStatus',
+    auth: null
+  },
+  /* protected */
+  "/sessions/:sessionId/": {
+    method: 'GET',
+    controller: 'SessionsController',
+    action: 'getSession'
+  },
+  /* protected */
+  "/methods/": {
+    method: 'GET',
+    controller: 'MainController',
+    action: 'getMethods'
+  },
+  /* protected */
+  "/sessions/:sessionId/charges": {
+    method: 'POST',
+    controller: 'ChargesController',
+    action: 'createCharge'
+  },
+  /* protected */
+  "/sessions/:sessionId/charges/:chargeId": {
+    method: 'GET',
+    controller: 'ChargesController',
+    action: 'getCharge',
+    auth: {
+      strategy: 'paymentIntentionStrategy',
+      redirect: null
+    }
+  }
 };

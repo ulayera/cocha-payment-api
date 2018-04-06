@@ -58,7 +58,7 @@ async function checkPayment(_paymentToken, _workflowData) {
     };
   }  else {
     let charge = paymenStatusData.charges.charge[0];
-    if (charge.status === 'APROBADA') {
+    if (charge.status === 'APROBADA') {``
       return {
         status: 'Complete',
         message: 'Aprobado',
@@ -84,7 +84,6 @@ module.exports = {
   getPaymentData: getPaymentData,
   checkPayment: checkPayment
 };
-
 
 
 

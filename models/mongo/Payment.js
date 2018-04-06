@@ -19,7 +19,32 @@ var schema = new mongoose.Schema({
     total:{type: Number},
     ttl:{type: Number},
     state:{type: String},
-    processed:{type: Number}
+    processed:{type: Number},
+
+  wappOkUrl: {type: String},
+  wappErrorUrl: {type: String},
+  date : {type: Date},
+  amounts: [{
+    amount: {type: Number},
+    commerceCode: {type: Koa.config.commerceCodes},
+    name: {type: String},
+    isPaid: {type : Boolean}
+  }],
+  products: [{
+    ccode: {type: String},
+    title: {type: String},
+    clpPrice: {type: Number},
+    origin: {type: String},
+    destination: {type: String},
+    departureDate: {type: Date},
+    returningDate: {type: Date},
+    contactEmail: {type: String},
+    totalRooms: {type: Number},
+    adult: {type: Number},
+    child: {type: Number},
+    infant: {type: Number}
+  }],
+  numeroNegocio: {type: String},
 });
 
 

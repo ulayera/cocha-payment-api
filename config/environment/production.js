@@ -3,21 +3,23 @@
 module.exports = {
 	appName: 'PAYMENTS',
 	paymentWappUrl: 'https://pagos.cocha.com/:sessionid',
-	appHashCode: process.env.PAYMENT_APP_CODE || 'C0CH4P4YM3NT.03c71e74f6bd1f32534d6289e44d7869',	
+	uberPaymentWappUrl: 'http://pagos.cocha.com/session/:sessionid',
+	appHashCode: process.env.PAYMENT_APP_CODE || 'C0CH4P4YM3NT.03c71e74f6bd1f32534d6289e44d7869',
 	commerceCodes: {
 		cocha: '597027395651'
 	},
-	productEmail:{
-		flight:'agenteinternet@cocha.com',
-		flighthotel:'agenteinternet@cocha.com'
-	},	
+	productEmail: {
+		flight: 'agenteinternet@cocha.com',
+		flighthotel: 'agenteinternet@cocha.com'
+	},
 	states: {
+    created: 'CREADO',
 		paid: 'PAGADO',
 		closed: 'CERRADO',
 		pending: 'PENDIENTE',
 		failed: 'FALLO',
 		erpPending: 'PENDIENTE-SMART',
-		erpFail: 'FALLO-SMART'		
+		erpFail: 'FALLO-SMART'
 	},
 	codes: {
 		currency: {
@@ -34,13 +36,13 @@ module.exports = {
 			hostToHost: 'H2H'
 		},
 		processedFlag: {
-			open:0,
-			pending:1,
-			closed:2
+			open: 0,
+			pending: 1,
+			closed: 2
 		},
 		source: {
-			VyH: 'D', 
-			Vuelo: 'F', 
+			VyH: 'D',
+			Vuelo: 'F',
 			Hotel: 'H'
 		}
 	},
@@ -82,7 +84,7 @@ module.exports = {
 		enabled: true
 	},
 	redisConf: {
-		host: process.env.REDIS_HOST ||  'mid-redis.cocha.com',
+		host: process.env.REDIS_HOST || 'mid-redis.cocha.com',
 		port: parseInt(process.env.REDIS_PORT) || 6379,
 		db: parseInt(process.env.REDIS_DB) || 0,
 		expire: 60 * 60 * 24, // Seconds -> 24h
@@ -91,15 +93,15 @@ module.exports = {
 		expireUserSession: 60 * 25 // Seconds -> 25m
 	},
 	mysqlConf: {
-		host: process.env.MYSQL_HOST ||  '192.168.254.29',
+		host: process.env.MYSQL_HOST || '192.168.254.29',
 		port: parseInt(process.env.MYSQL_PORT) || 3306,
 		database: 'expackage',
-		username: process.env.MYSQL_USER ||  'search-digital',
-		password: process.env.MYSQL_PASS ||  'c0ch4.D1g1t4l',
+		username: process.env.MYSQL_USER || 'search-digital',
+		password: process.env.MYSQL_PASS || 'c0ch4.D1g1t4l',
 		// insecureAuth: true
 	},
 	mongoConf: {
-		host: process.env.MONGODB_PAYMENT_HOST ||  'mongo-db-desa.cocha.com',
+		host: process.env.MONGODB_PAYMENT_HOST || 'mongo-db-desa.cocha.com',
 		port: parseInt(process.env.MONGODB_PAYMENT_PORT) || 27017,
 		database: process.env.MONGODB_PAYMENT_DB || 'payment',
 		username: process.env.MONGODB_PAYMENT_USER || 'payment',
