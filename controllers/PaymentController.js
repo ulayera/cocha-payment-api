@@ -2,7 +2,7 @@
 /* jshint strict: false, esversion: 6 */
 
 const sessionPaymentService = require('../services/SessionPaymentService');
-const paymentStrategyService = require('../services/PaymentStrategyService');
+const paymentStrategyService = require('../payment-sessions-app/services/PaymentStrategyService');
 
 const validSrc = Object.keys(Koa.config.codes.source);
 

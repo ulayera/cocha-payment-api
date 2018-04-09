@@ -21,6 +21,9 @@ function validateSession(session) {
       errors.push(`Parameter '${name}' is invalid: ${value}`);
     }
   }
+  if (session._id) {
+    errors.push(`You can't set the _id field`);
+  }
   validateField('session.successUrl', session.successUrl, _.isString, true);
   validateField('session.errorUrl',   session.errorUrl,   _.isString, true);
   validateField('session.name',       session.name,       _.isString, true);
@@ -28,6 +31,9 @@ function validateSession(session) {
   validateField('session.source',     session.source,     _.isString, true);
   validateField('session.products',   session.products,   _.isArray,  true);
   _.each(session.products, (p) => {
+    if (p._id) {
+      errors.push(`You can't set the _id field`);
+    }
     validateField('p.cpnr',   p.cpnr,   _.isString,  true);
     validateField('p.total',   p.total,   _.isNumber,  false);
     validateField('p.currency',   p.currency,   _.isString,  false);
@@ -35,7 +41,13 @@ function validateSession(session) {
     if (!p.currency || !_.isString(p.currency)) {
       p.currency = 'CLP';
     }
+    if (!_.isNull(p.amount) && p.amount > 0) {
+      p.totalPaid = 0;
+    }
     _.each(p.amounts, (a) => {
+      if (a._id) {
+        errors.push(`You can't set the _id field`);
+      }
       validateField('a.name',   a.name,   _.isString,  true);
       validateField('a.value',   a.value,   _.isNumber,  true);
       validateField('a.currency',   a.currency,   _.isString,  false);
@@ -77,7 +89,7 @@ function validateNewAttempt(session, attempt) {
   }
   //completes data structure
   let product = _.chain(session.products).filter((x)=> { return x._id.toString() === attempt.productId.toString() }).first().value();
-  //more validations
+  //validates that product exists
   if (!product) {
     result.isValid = false;
     result.reason = 'Specified Product do not exists';
@@ -91,11 +103,11 @@ function validateNewAttempt(session, attempt) {
     result.reason = 'Chosen amount type (fixed amounts or free amounts) and sent amount are incorrect';
     return result;
   }
-  //completes data structure
+  //completes data structure of amounts
   if (!product.amountsType) {
     product.amountsType = (attempt.amountId) ? 'fixed' : 'free';
   }
-  if (attempt.amount && !attempt.currency) {
+  if (!attempt.currency) {
     attempt.currency = 'CLP';
   }
   if (product.amountsType === 'fixed' && _.isNull(_.chain(product.amounts).filter((x)=> { return x._id.toString() === attempt.amountId.toString() }).first().value())) {
@@ -103,16 +115,33 @@ function validateNewAttempt(session, attempt) {
     result.reason = 'Chosen amount (amountId) to pay do not exists';
     return result;
   }
-  if (product.amountsType === 'free' && product.totalPaid+attempt.amount >= ) {
-
+  //validates current free-selection amount is lt the remaining
+  if (product.amountsType === 'free' && product.totalPaid+attempt.amount > product.total) {
+    result.isValid = false;
+    result.reason = 'selected amount is greater than the remaining';
+    return result;
   }
-
+  attempt.cpnr = product.cpnr;
   result.attempt = attempt;
   return result;
+}
+
+function validateExistingAttempt(attempt) {
+  if (!attempt) {
+    throw {
+      status: 404,
+      message: {
+        code: 'AttemptNotFoundError',
+        msg: 'Attempt not found'
+      }
+    };
+  }
+  return attempt;
 }
 
 module.exports = {
   calculateSession : calculateSession,
   validateSession : validateSession,
   validateNewAttempt : validateNewAttempt,
+  validateExistingAttempt : validateExistingAttempt,
 };

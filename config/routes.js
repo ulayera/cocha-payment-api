@@ -110,28 +110,28 @@ module.exports = {
   "/sessions/:sessionId/": {
     method: 'GET',
     controller: 'SessionsController',
-    action: 'getSession'
+    action: 'getSession',
+    auth: null
   },
   /* protected */
   "/methods/": {
     method: 'GET',
     controller: 'MainController',
-    action: 'getMethods'
+    action: 'getMethods',
+    auth: null
   },
   /* protected */
   "/sessions/:sessionId/charges": {
     method: 'POST',
     controller: 'ChargesController',
-    action: 'createCharge'
+    action: 'createCharge',
+    auth: null
   },
   /* protected */
   "/sessions/:sessionId/charges/:chargeId": {
     method: 'GET',
     controller: 'ChargesController',
     action: 'getCharge',
-    auth: {
-      strategy: 'paymentIntentionStrategy',
-      redirect: null
-    }
+    auth: null
   }
 };

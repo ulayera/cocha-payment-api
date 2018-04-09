@@ -24,7 +24,7 @@ async function save(attempt) {
   });
 }
 
-async function get(_id) {
+async function get(sessionId, _id) {
   let query;
   if (typeof _id === 'object') {
     query = _id;
@@ -34,7 +34,7 @@ async function get(_id) {
     };
   }
   return new Promise((resolve, reject) => {
-    Attempt.model.find(query, '-__v', function (err, payment) {
+    Attempt.model.findOne(query, '-__v', function (err, attempt) {
       if (err) {
         Koa.log.error(err);
         reject({
@@ -43,7 +43,7 @@ async function get(_id) {
           status: 500
         });
       } else {
-        if (!payment) {
+        if (!attempt || attempt.sessionId !== sessionId) {
           Koa.log.error(err);
           reject({
             msg: JSON.stringify(err),
@@ -52,7 +52,7 @@ async function get(_id) {
             params: JSON.stringify(_id)
           });
         } else {
-          resolve(payment);
+          resolve(attempt);
         }
       }
     })

@@ -15,15 +15,25 @@ async function checkStatus(ctx) {
   console.log(`SessionsController.getStatus() -> ${ctx.req.method} ${ctx.originalUrl}`);
   let session = dataHelper.calculateSession(await sessionsDataService.get(ctx.params.sessionId));
   ctx.body = {
+    _id : session._id,
     total: session.total,
     totalPaid: session.totalPaid,
     status: session.status,
+    products : []
   };
+  //output all products status
+  _.each(session.products, (p)=>{
+    ctx.body.products.push({
+      _id : p._id,
+      total: p.total,
+      totalPaid: p.totalPaid,
+    });
+  });
 }
 
 async function getSession(ctx) {
   console.log(`SessionsController.getSession() -> ${ctx.req.method} ${ctx.originalUrl}`);
-  ctx.body = calculateSession(await sessionsDataService.get(ctx.params.sessionId));
+  ctx.body = dataHelper.calculateSession(await sessionsDataService.get(ctx.params.sessionId));
 }
 
 module.exports = {
