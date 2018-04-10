@@ -8,7 +8,9 @@ let dataHelper = require('../payment-sessions-app/services/DataHelperService');
  */
 async function createSession(ctx) {
   console.log(`SessionsController.createSession() -> ${ctx.req.method} ${ctx.originalUrl}`);
-  ctx.body = await sessionsDataService.save(dataHelper.validateSession(ctx.params));
+  let session = dataHelper.validateSession(ctx.params);
+  session.status = Koa.config.states.created;
+  ctx.body = await sessionsDataService.save(session);
 }
 
 async function checkStatus(ctx) {
@@ -21,7 +23,6 @@ async function checkStatus(ctx) {
     status: session.status,
     products : []
   };
-  //output all products status
   _.each(session.products, (p)=>{
     ctx.body.products.push({
       _id : p._id,

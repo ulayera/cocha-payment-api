@@ -24,7 +24,7 @@ async function checkPayment(attempt, authSession) {
   //dummy
   checkResult.status = 'complete';
   return {
-    isPaid : checkResult.status.toUpperCase() === 'complete'.toUpperCase(),
+    isPaid : String(checkResult.status).toUpperCase() === 'complete'.toUpperCase(),
     status : checkResult.status,
     message : checkResult.message
   };
