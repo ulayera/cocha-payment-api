@@ -14,12 +14,12 @@ module.exports = {
 	},
 	states: {
     created: 'CREADO',
+    pending: 'PENDIENTE',
     paid: 'PAGADO',
-		closed: 'CERRADO',
-		pending: 'PENDIENTE',
 		failed: 'FALLO',
 		erpPending: 'PENDIENTE-SMART',
-		erpFail: 'FALLO-SMART'
+		erpFail: 'FALLO-SMART',
+    closed: 'CERRADO'
 	},
 	codes: {
 		currency: {
