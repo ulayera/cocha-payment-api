@@ -9,7 +9,8 @@ module.exports = {
         mongoose.connect('mongodb://'
             + (Koa.config.mongoConf.username ? Koa.config.mongoConf.username + ':' + encodeURIComponent(Koa.config.mongoConf.password) : '') 
             + '@' + Koa.config.mongoConf.host + ':' + Koa.config.mongoConf.port
-            + '/' + Koa.config.mongoConf.database, {
+            + '/' + Koa.config.mongoConf.database
+	          + '?authSource=admin', {
 				useMongoClient: true
 			});
 	}
