@@ -16,7 +16,7 @@ async function createCharge(ctx) {
       name: session.name,
       email: session.mail,
       cpnr: attemptCandidate.attempt.cpnr
-    }, {flowId: session.lockId});
+    }, {flowId: session.lockId, sessionId: session._id});
     attemptCandidate.attempt.info = paymentResult.info;
     let attempt = await attemptsDataService.save(attemptCandidate.attempt);
     ctx.body = {
@@ -38,7 +38,7 @@ async function createCharge(ctx) {
 async function getCharge(ctx) {
   let session = dataHelper.calculateSession(await sessionsDataService.get(ctx.params.sessionId));
   let attempt = dataHelper.validateExistingAttempt(await attemptsDataService.get(ctx.params.sessionId, ctx.params.chargeId)).toObject();
-  let paymentResult = await paymentStrategyService.checkPayment(attempt, {flowId: session.lockId});
+  let paymentResult = await paymentStrategyService.checkPayment(attempt, {flowId: session.lockId, sessionId: session._id});
   if ((String(attempt.status)).toUpperCase() !== Koa.config.states.complete && paymentResult.isPaid) {
     for (let i = 0; i < session.products.length; i++) {
       let product = session.products[i];
