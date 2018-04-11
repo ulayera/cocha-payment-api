@@ -1,7 +1,7 @@
-let attemptsDataService = require('../payment-sessions-app/services/AttemptsDataService');
-let sessionsDataService = require('../payment-sessions-app/services/SessionsDataService');
-let dataHelper = require('../payment-sessions-app/services/DataHelperService');
-let paymentStrategyService = require('../payment-sessions-app/services/PaymentStrategyService');
+let attemptsDataService = require('../payment-session-app/services/AttemptsDataService');
+let sessionsDataService = require('../payment-session-app/services/SessionsDataService');
+let dataHelper = require('../payment-session-app/services/DataHelperService');
+let paymentStrategyService = require('../payment-session-app/services/PaymentStrategyService');
 
 async function createCharge(ctx) {
   let charge = ctx.params;

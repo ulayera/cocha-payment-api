@@ -1,5 +1,5 @@
-let sessionsDataService = require('../payment-sessions-app/services/SessionsDataService');
-let dataHelper = require('../payment-sessions-app/services/DataHelperService');
+let sessionsDataService = require('../payment-session-app/services/SessionsDataService');
+let dataHelper = require('../payment-session-app/services/DataHelperService');
 
 /**
  * Creates and persists a payment session.

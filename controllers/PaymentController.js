@@ -2,7 +2,7 @@
 /* jshint strict: false, esversion: 6 */
 
 const sessionPaymentService = require('../services/SessionPaymentService');
-const paymentStrategyService = require('../payment-sessions-app/services/PaymentStrategyService');
+const paymentStrategyService = require('../payment-session-app/services/PaymentStrategyService');
 
 const validSrc = Object.keys(Koa.config.codes.source);
 
@@ -70,12 +70,5 @@ async function create(ctx) {
 
 module.exports = {
 	create: create,
-	getStatus: getStatus,
-	//v2
-	createUberSession: createUberSession,
-	checkUberStatus: checkUberStatus,
-  getPaymentMethods: getPaymentMethods,
-	getUberSession: getUberSession,
-	createCharge: createCharge,
-	getCharge: getCharge
+	getStatus: getStatus
 };
