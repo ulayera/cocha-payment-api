@@ -1,72 +1,28 @@
-let attemptsDataService = require('../payment-session-app/services/AttemptsDataService');
-let sessionsDataService = require('../payment-session-app/services/SessionsDataService');
-let dataHelper = require('../payment-session-app/services/DataHelperService');
-let paymentStrategyService = require('../payment-session-app/services/PaymentStrategyService');
+let paymentLogicService = require('../payment-session-app/services/PaymentLogicService');
 
 async function createCharge(ctx) {
-  let charge = ctx.params;
-  let session = dataHelper.calculateSession(await sessionsDataService.get(ctx.params.sessionId));
-  let attemptCandidate = dataHelper.validateNewAttempt(session.toObject(), charge);
-  session = await sessionsDataService.save(attemptCandidate.session);
-  if (attemptCandidate.isValid) {
-    let paymentResult = await paymentStrategyService.startPayment({
-      amount: attemptCandidate.attempt.amount,
-      method: attemptCandidate.attempt.method,
-      type: attemptCandidate.attempt.type,
-      name: session.name,
-      email: session.mail,
-      cpnr: attemptCandidate.attempt.cpnr
-    }, {flowId: session.lockId, sessionId: session._id});
-    attemptCandidate.attempt.info = paymentResult.info;
-    let attempt = await attemptsDataService.save(attemptCandidate.attempt);
-    ctx.body = {
-      chargeId: attempt._id,
-      status: attempt.status,
-      redirectUrl: paymentResult.redirectUrl
-    };
-  } else {
+  let charge = await paymentLogicService.createCharge(ctx.params);
+  if (charge.isValid === false) {
     throw {
-      status: 401,
+      status: 400,
       message: {
-        code: 'InvalidChargeAttemptError',
-        msg: attemptCandidate.reason
+        code: 'InvalidChargeError',
+        msg: charge.reason
       }
     };
   }
+  ctx.body = {
+    chargeId: charge._id,
+    status: charge.status,
+    redirectUrl: charge.redirectUrl
+  };
 }
 
 async function getCharge(ctx) {
-  let session = dataHelper.calculateSession(await sessionsDataService.get(ctx.params.sessionId));
-  let attempt = dataHelper.validateExistingAttempt(await attemptsDataService.get(ctx.params.sessionId, ctx.params.chargeId)).toObject();
-  let paymentResult = await paymentStrategyService.checkPayment(attempt, {flowId: session.lockId, sessionId: session._id});
-  if ((String(attempt.status)).toUpperCase() !== Koa.config.states.complete && paymentResult.isPaid) {
-    for (let i = 0; i < session.products.length; i++) {
-      let product = session.products[i];
-      if (product._id.toString() === attempt.productId) {
-        if (attempt.amountId) {
-          for (let j = 0; j < product.amounts.length; j++) {
-            if (product.amounts[j]._id.toString() === attempt.amountId) {
-              product.amounts[j].attemptId = attempt._id;
-              product.amounts[j].isPaid = true;
-            }
-          }
-        } else {
-          product.amounts.push({
-            attemptId: attempt._id,
-            value: attempt.amount,
-            currency: attempt.currency,
-            isPaid: true
-          });
-        }
-        break;
-      }
-    }
-    attempt.status = Koa.config.states.paid;
-    await attemptsDataService.save(attempt);
-    session = dataHelper.calculateSession(session);
-    await sessionsDataService.save(session);
-  }
-  ctx.body = {chargeId: attempt._id, status: attempt.status};
+  let attempt = await paymentLogicService.getCharge(ctx.params.sessionId, ctx.params.chargeId);
+  ctx.body = {
+    chargeId: attempt._id, status: attempt.status
+  };
 }
 
 

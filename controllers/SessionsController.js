@@ -1,5 +1,4 @@
-let sessionsDataService = require('../payment-session-app/services/SessionsDataService');
-let dataHelper = require('../payment-session-app/services/DataHelperService');
+let paymentLogicService = require('../payment-session-app/services/PaymentLogicService');
 
 /**
  * Creates and persists a payment session.
@@ -8,33 +7,24 @@ let dataHelper = require('../payment-session-app/services/DataHelperService');
  */
 async function createSession(ctx) {
   console.log(`SessionsController.createSession() -> ${ctx.req.method} ${ctx.originalUrl}`);
-  let session = dataHelper.validateSession(ctx.params);
-  session.status = Koa.config.states.created;
-  ctx.body = await sessionsDataService.save(session);
+  ctx.body = await paymentLogicService.createSession(ctx.params);
 }
 
 async function checkStatus(ctx) {
   console.log(`SessionsController.getStatus() -> ${ctx.req.method} ${ctx.originalUrl}`);
-  let session = dataHelper.calculateSession(await sessionsDataService.get(ctx.params.sessionId));
+  let session = await paymentLogicService.getSession(ctx.params.sessionId);
   ctx.body = {
     _id : session._id,
     total: session.total,
     totalPaid: session.totalPaid,
-    status: session.status,
-    products : []
+    remaining: session.total - session.totalPaid,
+    status: session.status
   };
-  _.each(session.products, (p)=>{
-    ctx.body.products.push({
-      _id : p._id,
-      total: p.total,
-      totalPaid: p.totalPaid,
-    });
-  });
 }
 
 async function getSession(ctx) {
   console.log(`SessionsController.getSession() -> ${ctx.req.method} ${ctx.originalUrl}`);
-  ctx.body = dataHelper.calculateSession(await sessionsDataService.get(ctx.params.sessionId));
+  ctx.body = await paymentLogicService.getSession(ctx.params.sessionId);
 }
 
 module.exports = {

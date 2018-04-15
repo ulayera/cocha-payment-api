@@ -37,7 +37,7 @@ async function checkPayment(attempt, authSession) {
 }
 
 module.exports = {
-  strategyName : "webpay",
+  strategyName : "itauCanje",
   startPayment: startPayment,
   checkPayment: checkPayment
 };

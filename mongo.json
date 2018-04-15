@@ -1,0 +1,29 @@
+{
+  "_id" : "3j24k324jkhk234k23j", //mongo provided
+  "wappOkUrl": "http://wapp-desa.cocha.com/vuelos/pago-runway/",
+  "wappErrorUrl": "http://wapp-desa.cocha.com/vuelos/pago-runway/",
+  "refCode": "P013943", //cpnr
+  "business": "P013943",
+  "name": "juan perez",
+  "email": "TEST_BORRAR@COCHA.COM",
+  "amounts" : [
+    {
+      "monto" : 10,
+      "label" : "ticket 1",
+      "refCode" : "d32d23d23d32"
+    }
+  ],
+  "message" : "",
+  "descriptions" : [{
+    "origin": "Santiago, Chile",
+    "destination": "Lima, Perú",
+    "departureDate": "2017-12-23T00:00:00-03:00",
+    "returningDate": "2017-12-27T00:00:00-03:00",
+    "productType" : "asdf",
+    "adult": 2,
+    "child": 1,
+    "infant": 0,
+    "totalRooms": 1
+  }],
+  "methodsFilter" : ["itau"]
+}

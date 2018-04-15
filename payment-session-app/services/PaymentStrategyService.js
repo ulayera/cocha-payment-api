@@ -1,20 +1,12 @@
-let PAYMENT_METHODS = [
-  "webpay"
-];
+let PAYMENT_METHODS = ["webpay", "itau"];
 
 let webpayStrategy = require('../strategies/WebpayStrategy');
-
-function getStrategies(uberSession) {
-  return PAYMENT_METHODS;
-}
-
-async function loadPreData(method, paymentData) {
-
-}
 
 async function startPayment(paymentData, authSession) {
   switch (paymentData.method) {
     case 'webpay' :
+      return await webpayStrategy.startPayment(paymentData, authSession);
+    case 'itau' :
       return await webpayStrategy.startPayment(paymentData, authSession);
     default:
       throw {
@@ -31,6 +23,8 @@ async function checkPayment(attempt, authSession) {
   switch (attempt.method) {
     case 'webpay' :
       return await webpayStrategy.checkPayment(attempt, authSession);
+    case 'itau' :
+      return await webpayStrategy.checkPayment(attempt, authSession);
     default:
       throw {
         status: 400,
@@ -44,8 +38,7 @@ async function checkPayment(attempt, authSession) {
 
 
 module.exports = {
-  getStrategies: getStrategies,
-  loadPreData: loadPreData,
+  PAYMENT_METHODS: PAYMENT_METHODS,
   startPayment: startPayment,
   checkPayment: checkPayment
 };

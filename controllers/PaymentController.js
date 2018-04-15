@@ -2,7 +2,6 @@
 /* jshint strict: false, esversion: 6 */
 
 const sessionPaymentService = require('../services/SessionPaymentService');
-const paymentStrategyService = require('../payment-session-app/services/PaymentStrategyService');
 
 const validSrc = Object.keys(Koa.config.codes.source);
 
@@ -47,28 +46,42 @@ async function create(ctx) {
   if (!_.has(ctx.params, 'adult') || !_.has(ctx.params, 'child') || !_.has(ctx.params, 'infant') || !_.isNumber(ctx.params.adult + ctx.params.child + ctx.params.infant)) {
     errors.push("Parameters 'adult', 'child' or 'infant' are invalids: " + ctx.params.adult + ", " + ctx.params.child + ", " + ctx.params.infant);
   }
+  if (errors.length > 0) {
+    throw {
+      status: 400,
+      message: {
+        code: 'ParamsError',
+        msg: errors
+      }
+    };
+  }
 
-	if (errors.length > 0) {
-		throw {
-			status: 400,
-			message: {
-				code: 'ParamsError',
-				msg: errors
-			}
-		};
-	}
-
-	let paymentSessionId = await sessionPaymentService.create(ctx);
+  let paymentSessionId = await sessionPaymentService.create(ctx);
 
 	ctx.body = {
-		status: 'Complete',
-		paymentToken: paymentSessionId,
-		url: Koa.config.paymentWappUrl.replace(':sessionid', paymentSessionId)
+    status: 'Complete',
+    paymentToken: paymentSessionId,
+    url: Koa.config.paymentWappUrl.replace(':sessionid', paymentSessionId)
 	};
 }
 
+async function getStatus(ctx) {
+  if (ctx.params.appCode === Koa.config.appHashCode) {
+    let paymentSessionStatus = await sessionPaymentService.status(ctx);
+    paymentSessionStatus.status = 'Complete';
+    ctx.body = paymentSessionStatus;
+  } else {
+    throw {
+			status: 401,
+			message: {
+				code: 'AuthError',
+				msg: 'Access denied'
+			}
+		};
+  }
+}
 
 module.exports = {
-	create: create,
-	getStatus: getStatus
+  create: create,
+  getStatus: getStatus
 };

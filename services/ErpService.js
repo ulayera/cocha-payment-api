@@ -244,4 +244,4 @@ module.exports = {
 	,checkTransaction:checkTransaction
 	,checkPendingPayments:checkPendingPayments
 	,isBusinessAssigned:isBusinessAssigned
-}   
+}
