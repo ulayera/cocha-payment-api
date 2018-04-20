@@ -48,6 +48,9 @@ module.exports = {
 		}
 	},
 	path: {
+    local: {
+      charges: 'http://localhost:' + process.env.PORT + '/sessions/:sessionId/charges'
+    },
 		itau: {
 			validateRut: 'http://apicanjegencert.celmedia.cl/ValidaRutCanje',
 			generateDynamicKey: 'http://apicanjegencert.celmedia.cl/GeneraClaveDinamica',
@@ -56,7 +59,9 @@ module.exports = {
 			requestPreExchange: 'http://apicanjegencert.celmedia.cl/SolicitarPrecanje',
 			validateClient: 'http://apicanjegencert.celmedia.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
 			requestExchange: 'http://apicanjegencert.celmedia.cl/RealizarCanje',
-			cancelPreExchange: 'http://apicanjegencert.celmedia.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId/:productQuantity'
+			cancelPreExchange: 'http://apicanjegencert.celmedia.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId/:productQuantity',
+      listAccounts: 'http://apicanjegencert.celmedia.cl/ListarCuentas/:rut/:dv/:providerId/:dynamicKeyId/',
+      selectAccount: 'http://apicanjegencert.celmedia.cl/SeleccionaCuenta/:rut/:dv/:providerId/:dynamicKeyId/:accountId/',
 		},
 		webpay: {
 			setPayment: './resources/onlinePayWS-desa.wsdl', // 'http://192.168.254.65:8080/process/onlinePayWS?wsdl',

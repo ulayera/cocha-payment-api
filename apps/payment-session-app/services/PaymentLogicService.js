@@ -9,7 +9,14 @@ async function createSession(sessionCandidate) {
 }
 
 async function getSession(sessionId) {
-  return dataHelper.calculateSession(await sessionsDataService.get(sessionId));
+  let session = dataHelper.calculateSession((await sessionsDataService.get(sessionId)).toObject());
+  if (session.toSplitAmount && session.toSplitAmount.value === 0 &&
+    session.amounts.every(amount => amount.isPaid) &&
+    session.statuses.some(status => (status.method === 'itau' && status.status === Koa.config.states.paid))) {
+    let status = session.statuses.find(status => (status.method === 'itau' && status.status === Koa.config.states.paid));
+    console.log("all paid and there's an itau exchange");
+  }
+  return session;
 }
 
 async function createCharge(charge) {
@@ -24,7 +31,7 @@ async function createCharge(charge) {
         name: session.toSplitAmount.label,
         value: charge.amount,
         currency: (session.toSplitAmount.currency) ? session.toSplitAmount.currency : 'CLP',
-        refCode : (session.toSplitAmount.refCode) ? session.toSplitAmount.refCode : session.refCode
+        refCode: (session.toSplitAmount.refCode) ? session.toSplitAmount.refCode : session.refCode
       }
     }
     let status = {
@@ -36,6 +43,8 @@ async function createCharge(charge) {
       status: Koa.config.states.pending
     };
     let paymentData = {
+      sessionId: session._id,
+      description: session.descriptions[0], //TODO: Cómo se decide esto?
       amount: amount.value,
       method: status.method,
       name: session.name,
@@ -92,8 +101,8 @@ async function getCharge(sessionId, chargeId) {
 }
 
 module.exports = {
-  createSession : createSession,
-  getSession : getSession,
-  createCharge : createCharge,
-  getCharge : getCharge,
+  createSession: createSession,
+  getSession: getSession,
+  createCharge: createCharge,
+  getCharge: getCharge,
 };

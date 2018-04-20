@@ -47,6 +47,9 @@ module.exports = {
 		}
 	},
 	path: {
+		local: {
+			charges: 'http://localhost:1337/sessions/:sessionId/charges'
+		},
 		itau: {
 			validateRut: 'http://apicanjegencert.celmedia.cl/ValidaRutCanje',
 			generateDynamicKey: 'http://apicanjegencert.celmedia.cl/GeneraClaveDinamica',
@@ -55,7 +58,9 @@ module.exports = {
 			requestPreExchange: 'http://apicanjegencert.celmedia.cl/SolicitarPrecanje',
 			validateClient: 'http://apicanjegencert.celmedia.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
 			requestExchange: 'http://apicanjegencert.celmedia.cl/RealizarCanje',
-			cancelPreExchange: 'http://apicanjegencert.celmedia.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId/:productQuantity'
+			cancelPreExchange: 'http://apicanjegencert.celmedia.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId/:productQuantity',
+			listAccounts: 'http://apicanjegencert.celmedia.cl/ListarCuentas/:rut/:dv/:providerId/:dynamicKeyId/',
+			selectAccount: 'http://apicanjegencert.celmedia.cl/SeleccionaCuenta/:rut/:dv/:providerId/:dynamicKeyId/:accountId/',
 		},
 		webpay: {
 			setPayment: './resources/onlinePayWS-desa.wsdl', // 'http://192.168.254.65:8080/process/onlinePayWS?wsdl',
@@ -71,9 +76,12 @@ module.exports = {
 	},
 	security: {
 		itau: {
-			providerId: 1,
-			apiKey: '$2y$10$qcSivIyzCm2g0u53WCk5Sug/h3wENYIRIxmuCcbOUq2k4nnLpnMz6',
-			apiKeyUser: '$2y$10$cZcEXCkUQgQmb729sfnor.tA3rwPEwhLGmb2tEuJ3/UuHew1FdosO'
+      // providerId: 1,
+      // apiKey: '$2y$10$qcSivIyzCm2g0u53WCk5Sug/h3wENYIRIxmuCcbOUq2k4nnLpnMz6',
+      // apiKeyUser: '$2y$10$cZcEXCkUQgQmb729sfnor.tA3rwPEwhLGmb2tEuJ3/UuHew1FdosO',
+      providerId: 31,
+      apiKey: '$2y$10$L2E1AYypB4J.mkKTSqXZbOS.wfmrsWXX3OAEkLEcJR2Kz3OT/tGs.',
+      apiKeyUser: '$2y$10$bnJAORFOIQSAHpNQ0T0Q5.NTlcaQrGj0c0ve.e02TpONZHJwEt5k.'
 		}
 	},
 	log: {

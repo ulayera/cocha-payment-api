@@ -1,117 +1,51 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-var schema = new mongoose.Schema(
-{
-  products: [{
-    ccode : {type : String},
-    paymentSrc : {type : String},
-    title : {type : String},
-    clpPrice : {type : Number},
-    origin : {type : String},
-    destination : {type : String},
-    departureDate : {type : Date},
-    returningDate : {type : Date},
-    contactEmail : {type : String},
-    wappOkUrl : {type : String},
-    wappErrorUrl : {type : String},
-    totalRooms : {type : Number},
-    adult : {type : Number},
-    child : {type : Number},
-    infant : {type : Number}
+let schema = new mongoose.Schema({
+  lockId: String, //represents the browser cookie to avoid multiple users paying the same session
+  wappOkUrl: String, // url to redirect in case of successful payment
+  wappErrorUrl: String, // url to redirect in case of unsuccessful payment
+  refCode : String,
+  business : String,
+  name: String, //person name for contact purposes (who created the session)
+  mail: String, //person mail for contact purposes (who created the session)
+  date: Date,
+  toSplitAmount: { //internal logic usage object (reduces it's value until zero each time an amount is created)
+    label: String, //name of the amount (i.e: "Ticket 1 SCL - LIM, Asiento E13"), for description purposes
+    value: Number, //value in CLP of the amount
+    currency: String, //currency code
+    refCode : String,
+  },
+  amounts: [{ //represents an atomic, undivisible amount to pay
+    name: String, //name of the amount (i.e: "Ticket 1 SCL - LIM, Asiento E13"), for description purposes
+    value: Number, //value in CLP of the amount
+    currency: String, //currency code
+    isPaid: Boolean, //true=paid, false=unpaid
+  }],
+  descriptions : [
+    {
+      origin : String,
+      destination : String,
+      departureDate : String,
+      returningDate : String,
+      productType : String,
+      adult : Number,
+      child : Number,
+      infant : Number,
+      totalRooms : Number,
+    }
+  ],
+  methodsFilter : [String],
+  statuses : [{
+    amountId: String, //id of the product to pay
+    amount: Number, //this attempt's amount value
+    method: String, //payment method selected for this attempt; see in config/[environment].js codes.method
+    currency: String, //currency code
+    date: Date, //creation date
+    status: String, // current status of this attempt, may be updated upon getting the attempt results
+    info: mongoose.Schema.Types.Mixed // carried data
   }]
 });
 
-
-async function getBySessionXpnr(_id,_xpnr)
-{
-  return await this.get({'_id':_id,'xpnr':_xpnr});
-}
-
-
-async function get(_id) {
-  let query;
-  if (typeof _id === 'object') {
-    query = _id;
-  } else {
-    query = {
-      '_id': _id
-    };
-  }
-  return new Promise((resolve, reject) => {
-    this.model.findOne(query, 'products _id _v', function(
-      err, payment) {
-      if (err) {
-        Koa.log.error(err);
-        reject({
-          msg: JSON.stringify(err),
-          code: 'UberPaymentError',
-          status: 500
-        });
-      } else {
-        if (!payment) {
-          Koa.log.error(err);
-          reject({
-            msg: JSON.stringify(err),
-            code: 'UberPaymentNotFound',
-            status: 404,
-            params: JSON.stringify(_id)
-          });
-        } else {
-          resolve(payment);
-        }
-      }
-    })
-  });
-}
-
-
-async function getAllBy(_id){
-  let query;
-  if(typeof _id === 'object'){
-    query = _id;
-  } else {
-    query = {'_id':_id};
-  }
-  return new Promise((resolve, reject) => {
-    this.model.find(query, function (err, payments) {
-      if (err) {
-        Koa.log.error(err);
-        reject({
-          msg: JSON.stringify(err),
-          code: 'UberPaymentError',
-          status:500
-        });
-      } else {
-        resolve(payments);
-      }
-    })
-  });
-}
-
-async function save(_object){
-  var query = {'_id':_object._id};
-  return new Promise((resolve, reject) => {
-    this.model.findOneAndUpdate(query, _object, {new:true,upsert:true,passRawResult:true}, function(err, doc, raw){
-      if (err) {
-        Koa.log.error(err);
-        reject({
-          msg: JSON.stringify(err),
-          code: 'RegisterUberPaymentError',
-          status:500
-        });
-      } else {
-        resolve(doc);
-      }
-    });
-  });
-}
-
-
-
 module.exports = {
-  model:mongoose.model('UberPayment', schema, 'uberPayment'),
-  getBySessionXpnr:getBySessionXpnr,
-  get:get,
-  save:save,
-  getAllBy:getAllBy
-}
+  model: mongoose.model('Session', schema, 'iterativeSession'),
+};

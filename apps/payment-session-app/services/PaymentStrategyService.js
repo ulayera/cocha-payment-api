@@ -1,12 +1,10 @@
-let PAYMENT_METHODS = ["webpay", "itau"];
+let PAYMENT_METHODS = ["webpay"];
 
 let webpayStrategy = require('../strategies/WebpayStrategy');
 
 async function startPayment(paymentData, authSession) {
   switch (paymentData.method) {
     case 'webpay' :
-      return await webpayStrategy.startPayment(paymentData, authSession);
-    case 'itau' :
       return await webpayStrategy.startPayment(paymentData, authSession);
     default:
       throw {
@@ -22,8 +20,6 @@ async function startPayment(paymentData, authSession) {
 async function checkPayment(attempt, authSession) {
   switch (attempt.method) {
     case 'webpay' :
-      return await webpayStrategy.checkPayment(attempt, authSession);
-    case 'itau' :
       return await webpayStrategy.checkPayment(attempt, authSession);
     default:
       throw {

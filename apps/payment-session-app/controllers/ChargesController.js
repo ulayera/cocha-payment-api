@@ -1,4 +1,4 @@
-let paymentLogicService = require('../payment-session-app/services/PaymentLogicService');
+let paymentLogicService = require('../services/PaymentLogicService');
 
 async function createCharge(ctx) {
   let charge = await paymentLogicService.createCharge(ctx.params);

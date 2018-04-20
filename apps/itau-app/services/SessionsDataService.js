@@ -1,4 +1,4 @@
-const Session = require('../models/Session');
+const Session = require('../../../models/mongo/Session');
 
 async function save(session) {
   let _object = Session.model(session);

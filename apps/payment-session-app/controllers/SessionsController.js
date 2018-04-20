@@ -1,4 +1,4 @@
-let paymentLogicService = require('../payment-session-app/services/PaymentLogicService');
+let paymentLogicService = require('../services/PaymentLogicService');
 
 /**
  * Creates and persists a payment session.

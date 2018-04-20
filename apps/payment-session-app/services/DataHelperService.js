@@ -80,7 +80,7 @@ function validateNewAttempt(session, attempt) {
       reason: str
     }
   }
-  if (_.isNull(attempt.session) || session.methodsFilter.indexOf(attempt.method) < 0) {
+  if (session.methodsFilter && session.methodsFilter.length > 0 && session.methodsFilter.indexOf(attempt.method) < 0) {
     return returnError('Payment method unavailable');
   } else if (session.toSplitAmount) {
     if (!attempt.amount) {

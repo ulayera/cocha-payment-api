@@ -10,6 +10,8 @@ global.Koa.log = require('./config/logger');
 
 let authenticator = require('./config/authenticator');
 let routes = require('./config/routes');
+let itauRoutes = require('./apps/itau-app/config/routes');
+let paymentRoutes = require('./apps/payment-session-app/config/routes');
 let crons = require('./config/crons');
 let utils = require('./config/utils');
 
@@ -54,25 +56,70 @@ if (Koa.config.crons.enabled) {
 }
 
 _.forEach(routes, (route, key) => {
-	router[route.method.toLowerCase()](key, async ctx => {
-		let valid = true; 
-		if (route.auth) {
-			valid = await authenticator[route.auth.strategy](ctx.request.header, ctx.params);
-			ctx.authType = valid && valid.type;
-			ctx.authSession = (valid && valid.sessionData)? valid.sessionData : ctx.authSession;
-		}
+  key = key.match(/\S+/g);
+  router[key[0].toLowerCase()](key[1], async ctx => {
+    let valid = true;
+    if (route.auth) {
+      valid = await authenticator[route.auth.strategy](ctx.request.header, ctx.params);
+      ctx.authType = valid && valid.type;
+      ctx.authSession = (valid && valid.sessionData)? valid.sessionData : ctx.authSession;
+    }
 
-		if (valid) {
-			let executable = require('./controllers/' + route.controller)[route.action];
-			await executable(ctx);
-		} else {
-			if (route.auth.redirect) {
-				ctx.redirect(route.auth.redirect);
-			} else {
-				throw {status: 401, message: {code: 'AuthError', msg: 'Access denied'}};
-			}
-		}
-	});
+    if (valid) {
+      let executable = require('./controllers/' + route.controller)[route.action];
+      await executable(ctx);
+    } else {
+      if (route.auth.redirect) {
+        ctx.redirect(route.auth.redirect);
+      } else {
+        throw {status: 401, message: {code: 'AuthError', msg: 'Access denied'}};
+      }
+    }
+  });
+});
+_.forEach(paymentRoutes, (route, key) => {
+  key = key.match(/\S+/g);
+  router[key[0].toLowerCase()](key[1], async ctx => {
+    let valid = true;
+    if (route.auth) {
+      valid = await authenticator[route.auth.strategy](ctx.request.header, ctx.params);
+      ctx.authType = valid && valid.type;
+      ctx.authSession = (valid && valid.sessionData)? valid.sessionData : ctx.authSession;
+    }
+
+    if (valid) {
+      let executable = require('./apps/payment-session-app/controllers/' + route.controller)[route.action];
+      await executable(ctx);
+    } else {
+      if (route.auth.redirect) {
+        ctx.redirect(route.auth.redirect);
+      } else {
+        throw {status: 401, message: {code: 'AuthError', msg: 'Access denied'}};
+      }
+    }
+  });
+});
+_.forEach(itauRoutes, (route, key) => {
+  key = key.match(/\S+/g);
+  router[key[0].toLowerCase()](key[1], async ctx => {
+    let valid = true;
+    if (route.auth) {
+      valid = await authenticator[route.auth.strategy](ctx.request.header, ctx.params);
+      ctx.authType = valid && valid.type;
+      ctx.authSession = (valid && valid.sessionData)? valid.sessionData : ctx.authSession;
+    }
+
+    if (valid) {
+      let executable = require('./apps/itau-app/controllers/' + route.controller)[route.action];
+      await executable(ctx);
+    } else {
+      if (route.auth.redirect) {
+        ctx.redirect(route.auth.redirect);
+      } else {
+        throw {status: 401, message: {code: 'AuthError', msg: 'Access denied'}};
+      }
+    }
+  });
 });
 
 app.use(bodyParser);
