@@ -12,7 +12,7 @@ async function create(_ctx) {
   let now = new Date();
 	let session = {
 		data: {
-      cpnr: _ctx.params.ccode + now.getFullYear() + (now.getMonth() + 1),      
+      cpnr: _ctx.params.ccode + now.getFullYear() + (now.getMonth() + 1),
       cochaCode: _ctx.params.ccode,
       paymentSource: _ctx.params.paymentSrc,
       productName: _ctx.params.title,
@@ -48,13 +48,13 @@ async function create(_ctx) {
   session.data.urlError += (code + sessionId);
   await paymentSessionModel.setPaymentSession(sessionId, session);
 
-  return sessionId; 
+  return sessionId;
 }
 
 async function status(_ctx) {
   try {
     let paymentData = await paymentModel.get(_ctx.params.paymentSessionCode);
-    
+
     let paidAmount = 0;
     _.each(paymentData.status, (record) => {
       if (record.status === Koa.config.states.pending) {
@@ -70,7 +70,7 @@ async function status(_ctx) {
     } else
     if (paidAmount !== parseFloat(paymentData.total)) {
       throw {code: 'PartiallyPaid'};
-    } else 
+    } else
     if (!paymentData.business) {
       throw {code: 'PaidWithoutBusiness'};
     } else {
@@ -215,7 +215,7 @@ module.exports = {
   remove: remove,
 	isValidNewAttempt: isValidNewAttempt,
 	addAttempt: addAttempt,
-	isValidAttempt: isValidAttempt	
+	isValidAttempt: isValidAttempt
 };
 
 function cleanRut(_rut) {

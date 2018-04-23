@@ -78,7 +78,7 @@ async function getStatus(ctx) {
 				msg: 'Access denied'
 			}
 		};
-  } 
+  }
 }
 
 module.exports = {

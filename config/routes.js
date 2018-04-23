@@ -2,20 +2,17 @@
 /* jshint strict: false, esversion: 6 */
 
 module.exports = {
-	'/setPayment': {
-		method: 'POST',
+	'POST /setPayment': {
 		controller: 'PaymentController',
 		action: 'create',
 		auth: null
 	},
-	'/statusPayment/:paymentSessionCode/:appCode': {
-		method: 'GET',
+	'GET /statusPayment/:paymentSessionCode/:appCode': {
 		controller: 'PaymentController',
 		action: 'getStatus',
 		auth: null
 	},
-	'/getPaymentSession/:paymentSessionCode': {
-		method: 'GET',
+	'GET /getPaymentSession/:paymentSessionCode': {
 		controller: 'ItauController',
 		action: 'getPaymentSession',
 		auth: {
@@ -23,8 +20,7 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'/loadClient/:paymentSessionCode/:rut/:dv': {
-		method: 'GET',
+	'GET /loadClient/:paymentSessionCode/:rut/:dv': {
 		controller: 'ItauController',
 		action: 'loadClient',
 		auth: {
@@ -32,8 +28,7 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'/sendDynamicKey': {
-		method: 'GET',
+	'GET /sendDynamicKey': {
 		controller: 'ItauController',
 		action: 'sendDynamicKey',
 		auth: {
@@ -41,8 +36,7 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'/validateDynamicKey': {
-		method: 'POST',
+	'POST /validateDynamicKey': {
 		controller: 'ItauController',
 		action: 'validateDynamicKey',
 		auth: {
@@ -50,8 +44,7 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'/executePayment': {
-		method: 'POST',
+	'POST /executePayment': {
 		controller: 'ItauController',
 		action: 'executePayment',
 		auth: {
@@ -59,8 +52,7 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'/checkPayment': {
-		method: 'GET',
+	'GET /checkPayment': {
 		controller: 'ItauController',
 		action: 'checkPayment',
 		auth: {
@@ -68,8 +60,7 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'/cancelPayment': {
-		method: 'GET',
+	'GET /cancelPayment': {
 		controller: 'ItauController',
 		action: 'cancelPayment',
 		auth: {
@@ -77,18 +68,15 @@ module.exports = {
 			redirect: null
 		}
 	},
-	'/redeem': {
-		method: 'POST',
+	'POST /redeem': {
 		controller: 'ErpController',
 		action: 'assignTransaction'
 	},
-	'/checkStatus/:sessionToken/:xpnr': {
-		method: 'GET',
+	'GET /checkStatus/:sessionToken/:xpnr': {
 		controller: 'ErpController',
 		action: 'checkTransaction'
 	},
-	'/test' : {
-		method: 'GET' ,
+	'GET /test' : {
 		controller: 'ItauController',
 		action: 'test'
 	}

@@ -13,7 +13,7 @@
     "koa-bodyparser": "^4.2.0",
     "koa-mongoose": "^2.0.0",
     "koa-router": "^7.2.1",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.5",
     "loopback-connector-mysql": "^5.1.0",
     "loopback-datasource-juggler": "^3.12.0",
     "moment": "^2.17.1",
@@ -21,7 +21,9 @@
     "redis": "^2.6.0-1",
     "request": "^2.81.0",
     "request-promise": "^4.2.2",
-    "soap": "^0.23.0"
+    "soap": "^0.23.0",
+    "uglify-js": "^3.3.16",
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "jest": "^15.1.1",
