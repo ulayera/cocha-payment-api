@@ -107,11 +107,10 @@ async function freezeAmount(ctx) {
     spendingAmount: ctx.params.amount,
     authSession: ctx.authSession || {}
   });
-  itauSession.canjeId = preExchangeData.id;
-  itauSession.productId = ctx.cpnr;
-  itauSession.spendingAmount = ctx.params.amount;
-  itauLoginSession.updateItauSession(ctx.params.sessionId, itauSession);
-  await persistToSession(ctx, itauSession, session, preExchangeData);
+  preExchangeData.rut = itauSession.rut;
+  preExchangeData.dv = itauSession.dv;
+  preExchangeData.productId = session.refCode;
+  await persistToSession(session, preExchangeData);
   return await paymentClientService.postCharges({
     sessionId : session._id.toString(),
     method : "webpay",
@@ -120,15 +119,14 @@ async function freezeAmount(ctx) {
 }
 
 async function spendFrozenAmount(ctx) {
-  let itauSession = await itauLoginSession.getItauSession(ctx.params.sessionId);
   let args = {
-    rut: ctx.params.rut,
-    dv: ctx.params.dv,
-    preExchangeId: itauSession.canjeId,
-    spendingAmount: itauSession.spendingAmount,
+    rut: ctx.rut,
+    dv: ctx.dv,
+    preExchangeId: ctx.canjeId,
+    spendingAmount: ctx.spendingAmount,
     extraExchangeAmount: 0,
     productName: null,
-    productId: itauSession.productId,
+    productId: ctx.productId,
     authSession: ctx.authSession || {}
   };
   return await itauClientService.requestExchange(args);
@@ -138,10 +136,10 @@ async function freeFrozenAmount() {
   
 }
 
-async function persistToSession(ctx, itauSession, session, preExchangeData) {
+async function persistToSession(session, preExchangeData) {
   let amount = session.amounts.create({
     name: session.toSplitAmount.label,
-    value: ctx.params.amount,
+    value: preExchangeData.spentAmount,
     currency: 'CLP',
     refCode: session.refCode,
     isPaid: true

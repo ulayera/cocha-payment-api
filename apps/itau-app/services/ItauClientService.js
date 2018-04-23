@@ -2,7 +2,7 @@
 /* jshint strict: false, esversion: 6 */
 
 const webServices = require('cocha-external-services').webServices;
-const logService = require('./../../../models/mongo/LogRegister.js');
+const logService = require('./../../../services/LogService');
 
 async function validateRut(args) {
 	let url = Koa.config.path.itau.validateRut;
@@ -109,7 +109,7 @@ async function generateDynamicKey(args) {
           description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
           code = 'InternalError';
         }
-        if (status === 150) status = 500;
+        if (status === 150) status = 500; //status code 150 is not supported by koa response
         reject({
           status: status,
           message: {
@@ -273,7 +273,8 @@ async function requestPreExchange(args) {
         message = result.response.PRECANJE_MENSAJE || result.meta.message;
       }
 
-      if (status === 200 || status === 202) {
+      if ((!result.response.COD_RESPUESTA || result.response.COD_RESPUESTA === 200) &&
+        (status === 200 || status === 202)) {
         resolve({
           status: result.response.PRECANJE_MENSAJE,
           id: result.response.PRECANJE_ID,
@@ -290,10 +291,14 @@ async function requestPreExchange(args) {
           description = `Problem processing the request, Data: ${status} - ${message}`;
           code = 'PreExchangeProcessError';
         } else {
+          if (status === 200) {
+            status = result.response.COD_RESPUESTA;
+            message = result.response.MSJ_RESPUESTA;
+          }
           description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
           code = 'InternalError';
         }
-
+        if (status == 153) status = 500; //status code 153 is not supported by koa response
         reject({
           status: status,
           message: {
@@ -405,7 +410,7 @@ async function requestExchange(args) {
           description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
           code = 'InternalError';
         }
-
+        if (status == 153) status = 500; //status code 153 is not supported by koa response
         reject({
           status: status,
           message: {

@@ -1,6 +1,7 @@
 let sessionsDataService = require('./SessionsDataService');
 let dataHelper = require('./DataHelperService');
 let paymentStrategyService = require('./PaymentStrategyService');
+let itauLogicService = require('../../itau-app/services/ItauLogicService');
 
 async function createSession(sessionCandidate) {
   let session = dataHelper.validateSession(sessionCandidate);
@@ -14,7 +15,23 @@ async function getSession(sessionId) {
     session.amounts.every(amount => amount.isPaid) &&
     session.statuses.some(status => (status.method === 'itau' && status.status === Koa.config.states.paid))) {
     let status = session.statuses.find(status => (status.method === 'itau' && status.status === Koa.config.states.paid));
-    console.log("all paid and there's an itau exchange");
+    let spendFrozenAmountData = await itauLogicService.spendFrozenAmount({
+      rut : status.info.rut,
+      dv : status.info.dv,
+      canjeId : status.info.id,
+      spendingAmount : status.amount,
+      productId : status.info.productId,
+    });
+    if (!spendFrozenAmountData || !spendFrozenAmountData.id) {
+      throw {
+        msg: 'Couldn\'t confirm Itaú payment.',
+        code: 'SessionAmountsNotEmptyError',
+        status: 401
+      };
+    } else {
+      status.status = Koa.config.states.closed;
+      await sessionsDataService.save(session);
+    }
   }
   return session;
 }
