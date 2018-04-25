@@ -14,12 +14,13 @@ module.exports = {
 	},
 	states: {
     created: 'CREADO',
-    pending: 'PENDIENTE',
+    pending: 'PENDING',
     paid: 'PAGADO',
 		failed: 'FALLO',
 		erpPending: 'PENDIENTE-SMART',
 		erpFail: 'FALLO-SMART',
-    closed: 'CERRADO'
+    closed: 'CLOSED',
+    complete: 'COMPLETE'
 	},
 	codes: {
 		currency: {
@@ -48,7 +49,8 @@ module.exports = {
 	},
 	path: {
 		local: {
-			charges: 'http://localhost:1337/sessions/:sessionId/charges'
+			charges: 'http://localhost:1337/sessions/:sessionId/charges',
+      sessions: 'http://localhost:1337/sessions/'
 		},
 		itau: {
 			validateRut: 'http://apicanjegencert.celmedia.cl/ValidaRutCanje',

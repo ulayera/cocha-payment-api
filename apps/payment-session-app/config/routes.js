@@ -14,6 +14,10 @@ module.exports = {
     controller: 'SessionsController',
     action: 'getSession',
   },
+  "GET /sessions/:sessionId/as-deal": {
+    controller: 'SessionsController',
+    action: 'getSessionAsDeal',
+  },
   "POST /sessions/:sessionId/charges": {
     controller: 'ChargesController',
     action: 'createCharge',
@@ -21,5 +25,5 @@ module.exports = {
   "GET /sessions/:sessionId/charges/:chargeId": {
     controller: 'ChargesController',
     action: 'getCharge',
-  }
+  },
 };

@@ -8,7 +8,7 @@ async function startPayment(paymentData, authSession) {
     holderName: paymentData.name,
     holderEmail: paymentData.email
   };
-  let paymentResult = await webpayService.startPayment(params, authSession);
+  let paymentResult = await webpayService.getPaymentData(params, authSession);
   return {
     redirectUrl : paymentResult.url,
     info : paymentResult

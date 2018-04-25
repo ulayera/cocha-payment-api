@@ -8,7 +8,7 @@ function calculateSession(session) {
     session.total = _.sumBy(session.amounts, a => a.value);
   }
   session.totalPaid = _.sumBy(session.amounts, a => (a.isPaid) ? a.value : 0);
-  session.status = (session.total === session.totalPaid) ? Koa.config.states.paid : Koa.config.states.pending;
+  session.status = (session.total === session.totalPaid) ? Koa.config.states.complete : Koa.config.states.pending;
   return session;
 }
 

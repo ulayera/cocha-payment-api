@@ -11,28 +11,8 @@ async function createSession(sessionCandidate) {
 
 async function getSession(sessionId) {
   let session = dataHelper.calculateSession((await sessionsDataService.get(sessionId)).toObject());
-  if (session.toSplitAmount && session.toSplitAmount.value === 0 &&
-    session.amounts.every(amount => amount.isPaid) &&
-    session.statuses.some(status => (status.method === 'itau' && status.status === Koa.config.states.paid))) {
-    let status = session.statuses.find(status => (status.method === 'itau' && status.status === Koa.config.states.paid));
-    let spendFrozenAmountData = await itauLogicService.spendFrozenAmount({
-      rut : status.info.rut,
-      dv : status.info.dv,
-      canjeId : status.info.id,
-      spendingAmount : status.amount,
-      productId : status.info.productId,
-    });
-    if (!spendFrozenAmountData || !spendFrozenAmountData.id) {
-      throw {
-        msg: 'Couldn\'t confirm Itaú payment.',
-        code: 'SessionAmountsNotEmptyError',
-        status: 401
-      };
-    } else {
-      status.status = Koa.config.states.closed;
-      await sessionsDataService.save(session);
-    }
-  }
+  // guarda asincronamente el calculo hecho
+  sessionsDataService.save(session);
   return session;
 }
 
@@ -117,9 +97,51 @@ async function getCharge(sessionId, chargeId) {
   return attempt;
 }
 
+async function assignTransaction(sessionId, businessNumber) {
+  let session = dataHelper.calculateSession((await sessionsDataService.get(sessionId)));
+  if (!session.businessNumber) {
+    session.businessNumber = businessNumber;
+    await sessionsDataService.save(session);
+    return {
+      businessNumber : session.businessNumber,
+      payments : _.map(session.statuses, status => {
+        return {
+          type: (status.method.toLowerCase() === 'itau') ? 'EXCHANGE' : 'ONLINE',
+          method: status.method,
+          amount: status.amount,
+          currency: status.currency,
+          info: status.info
+        }
+      })
+    };
+  } else {
+    throw {
+      code: "BusinessAlreadyAssigned"
+    };
+  }
+}
+
+async function checkTransaction(sessionId) {
+  let session = dataHelper.calculateSession((await sessionsDataService.get(sessionId)));
+  return {
+    businessNumber : session.businessNumber,
+    payments : _.map(session.statuses, status => {
+      return {
+        type: (status.method.toLowerCase() === 'itau') ? 'EXCHANGE' : 'ONLINE',
+        method: status.method,
+        amount: status.amount,
+        currency: status.currency,
+        info: status.info
+      }
+    })
+  };
+}
+
 module.exports = {
   createSession: createSession,
   getSession: getSession,
   createCharge: createCharge,
   getCharge: getCharge,
+  assignTransaction: assignTransaction,
+  checkTransaction: checkTransaction,
 };

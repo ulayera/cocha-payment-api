@@ -2,6 +2,9 @@ const itauClientService = require('./ItauClientService');
 const itauLoginSession = require('../models/redis/ItauSession');
 const sessionsDataService = require('./SessionsDataService');
 const paymentClientService = require('./PaymentClientService');
+const erpServices = require('../../../services/ErpService');
+const slackService = require('../../../services/SlackService');
+const confirmationServices = require('../../../services/ConfirmationService');
 
 async function generateDynamicKey(ctx) {
   let session = await sessionsDataService.get(ctx.params.sessionId);
@@ -76,7 +79,7 @@ async function getBalance(ctx) {
       biggerBalanceAccount = account;
     }
   });
-  args.accountId = biggerBalanceAccount.cuentaId
+  args.accountId = biggerBalanceAccount.cuentaId;
   await itauClientService.selectAccount(args);
   itauSession.productId = biggerBalanceAccount.productId;
   itauSession.cuentaId = biggerBalanceAccount.cuentaId;
@@ -84,6 +87,7 @@ async function getBalance(ctx) {
   return {
     numeroTarjeta: biggerBalanceAccount.numeroTarjeta,
     tipoTarjeta: biggerBalanceAccount.tipoTarjeta,
+    saldoDisponible: biggerBalanceAccount.saldoDisponible,
     saldoDisponibleConversion: biggerBalanceAccount.saldoDisponibleConversion,
   };
 }
@@ -91,13 +95,19 @@ async function getBalance(ctx) {
 async function freezeAmount(ctx) {
   let itauSession = await itauLoginSession.getItauSession(ctx.params.sessionId);
   let session = await sessionsDataService.get(ctx.params.sessionId);
-  if (session.amounts && session.amounts.length > 0) {
+  /**
+   * valida que sea el primer canje itaú de la sesión
+   */
+  if (session.amounts && session.amounts.length > 0) {
     throw {
       msg: 'Itaú amount already created or bad request',
       code: 'SessionAmountsNotEmptyError',
       status: 401
     }
   }
+  /**
+   * realiza preCanje hacia servicios de itaú
+   */
   let preExchangeData = await itauClientService.requestPreExchange({
     rut: itauSession.rut,
     dv: itauSession.dv,
@@ -107,15 +117,116 @@ async function freezeAmount(ctx) {
     spendingAmount: ctx.params.amount,
     authSession: ctx.authSession || {}
   });
+  /**
+   * guarda el amount como pagado y el intento de pago (status) con la data de itaú
+   */
   preExchangeData.rut = itauSession.rut;
   preExchangeData.dv = itauSession.dv;
   preExchangeData.productId = session.refCode;
-  await persistToSession(session, preExchangeData);
-  return await paymentClientService.postCharges({
-    sessionId : session._id.toString(),
-    method : "webpay",
-    amount : session.toSplitAmount.value //remaining value is already reduced
-  });
+  let status = await persistToSession(session, preExchangeData);
+  /**
+   * si el pago de itaú no cubre el total a pagar, se genera un pago webpay y retorna
+   * si cubre el total, confirma el canjey retorna ok
+   */
+  if (session.toSplitAmount.value > 0) {
+    return await paymentClientService.postCharges({
+      sessionId: session._id.toString(),
+      method: "webpay",
+      amount: session.toSplitAmount.value //remaining value is already reduced
+    });
+  } else {
+    let spendFrozenAmountData = await spendFrozenAmount({
+      rut: status.info.rut,
+      dv: status.info.dv,
+      canjeId: status.info.id,
+      spendingAmount: status.amount,
+      productId: status.info.productId,
+    });
+    // valida que el canje definitivo se realizó ok antes de retornar
+    if (!spendFrozenAmountData || !spendFrozenAmountData.id) {
+      throw {
+        msg: 'Couldn\'t confirm Itaú payment.',
+        code: 'SessionAmountsNotEmptyError',
+        status: 401
+      };
+    } else {
+      status.status = Koa.config.states.closed;
+      await sessionsDataService.save(session);
+    }
+    return {
+      status: Koa.config.states.complete
+    };
+  }
+}
+
+async function checkPaymentAndRetry(ctx) {
+  let session = await sessionsDataService.get(ctx.params.sessionId);
+  /**
+   * busca el charge mediante el webpayId a validar
+   */
+  let chargeId = _.find(session.statuses,
+    status =>
+      status.info.tokenWebPay === ctx.params.webpayId
+  )._id.toString();
+  let chargeStatus = await paymentClientService.getCharge({sessionId : ctx.params.sessionId, chargeId : chargeId});
+  /**
+   * valida intentos maximos webpay (3)
+   */
+  if (_.filter(session.statuses, status => status.method === 'webpay').length > 2) {
+    throw {
+      status: 500,
+      message: {
+        code: 'PaymentAttemptsError',
+        msg: 'You have exceeded the number of payment attempts'
+      }
+    };
+  }
+  /**
+   * si el cargo no esta pagado, crea otro y retorna url webpay
+   * de lo contrario, retorna ok
+   */
+  if (chargeStatus.status.toUpperCase() !== Koa.config.states.paid.toUpperCase()) {
+    let postChargesData = await paymentClientService.postCharges({
+      sessionId: session._id.toString(),
+      method: "webpay",
+      amount: session.toSplitAmount.value //remaining value is already reduced
+    });
+    return {
+      status: Koa.config.states.pending,
+      // points: userData.availablePoints, // para que quiere saber esto el wapp?
+      // amount: userData.availableAmount,
+      url: postChargesData.redirectUrl,
+      okPath: null,
+      errPath: null
+    };
+  } else {
+    let itauStatus = _.find(session.statuses, status=>
+      (status.method.toLowerCase()==='itau' &&
+        status.status.toUpperCase()===Koa.config.states.paid)
+    );
+    let informPaymentData = await erpServices.informPayment(
+      ctx.params.sessionId,
+      {
+        rut: itauStatus.info.rut + '-' + itauStatus.info.dv,
+        paymentId: itauStatus.info.id
+      },
+      itauStatus.info.spentAmount,
+      Koa.config.codes.type.points,
+      Koa.config.codes.method.itau,
+      ctx.authSession);
+    if (!informPaymentData || !informPaymentData.STATUS || informPaymentData.STATUS.toUpperCase() !== 'OK') {
+      slackService.log('info', JSON.stringify(informPaymentData), 'Smart Error');
+    }
+    confirmationServices.reportPay();
+    return {
+      status: Koa.config.states.complete,
+      // points: userData.availablePoints,
+      // amount: userData.availableAmount,
+      url: null,
+      okPath: session.wappOkUrl,
+      errPath: session.wappErrorUrl
+    };
+  }
 }
 
 async function spendFrozenAmount(ctx) {
@@ -133,7 +244,7 @@ async function spendFrozenAmount(ctx) {
 }
 
 async function freeFrozenAmount() {
-  
+
 }
 
 async function persistToSession(session, preExchangeData) {
@@ -157,12 +268,13 @@ async function persistToSession(session, preExchangeData) {
   session.toSplitAmount.value -= amount.value;
   session.statuses.push(status);
   await sessionsDataService.save(session);
+  return status;
 }
 
 module.exports = {
   generateDynamicKey: generateDynamicKey,
   getBalance: getBalance,
   freezeAmount: freezeAmount,
-  spendFrozenAmount: spendFrozenAmount,
   freeFrozenAmount: freeFrozenAmount,
+  checkPaymentAndRetry: checkPaymentAndRetry,
 };

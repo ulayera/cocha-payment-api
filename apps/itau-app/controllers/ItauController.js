@@ -1,10 +1,11 @@
 'use strict';
 /* jshint strict: false, esversion: 6 */
-const itauClientService = require('../services/ItauLogicService');
+const itauLogicService = require('../services/ItauLogicService');
 
 
 async function attemptLogin(ctx) {
-  let itauCustomerData = await itauClientService.generateDynamicKey(ctx);
+  console.log(`ItauController.attemptLogin() -> ${ctx.req.method} ${ctx.originalUrl}`);
+  let itauCustomerData = await itauLogicService.generateDynamicKey(ctx);
   ctx.body = {
     dynamicKey: itauCustomerData.dynamicKey,
     rut : itauCustomerData.rut + '-' + itauCustomerData.dv,
@@ -15,25 +16,34 @@ async function attemptLogin(ctx) {
 
 
 async function getBalance(ctx) {
-  let itauCustomerAccountBalanceData = await itauClientService.getBalance(ctx);
+  console.log(`ItauController.getBalance() -> ${ctx.req.method} ${ctx.originalUrl}`);
+  let itauCustomerAccountBalanceData = await itauLogicService.getBalance(ctx);
   ctx.body = {
     numeroTarjeta : itauCustomerAccountBalanceData.numeroTarjeta,
     tipoTarjeta : itauCustomerAccountBalanceData.tipoTarjeta,
+    saldoDisponible : itauCustomerAccountBalanceData.saldoDisponible,
     saldoDisponibleConversion : itauCustomerAccountBalanceData.saldoDisponibleConversion,
   };
 }
 
 async function freezeAmount(ctx) {
-  let freezeAmountData = await itauClientService.freezeAmount(ctx);
+  console.log(`ItauController.freezeAmount() -> ${ctx.req.method} ${ctx.originalUrl}`);
+  let freezeAmountData = await itauLogicService.freezeAmount(ctx);
   ctx.body = {
     status : freezeAmountData.status,
-    redirectUrl : freezeAmountData.redirectUrl,
+    url : freezeAmountData.redirectUrl,
     chargeId : freezeAmountData.chargeId,
   };
+}
+
+async function checkPaymentAndRetry(ctx) {
+  console.log(`ItauController.checkPaymentAndRetry() -> ${ctx.req.method} ${ctx.originalUrl}`);
+  ctx.body = await itauLogicService.checkPaymentAndRetry(ctx);
 }
 
 module.exports = {
   attemptLogin: attemptLogin,
   getBalance: getBalance,
   freezeAmount: freezeAmount,
+  checkPaymentAndRetry: checkPaymentAndRetry,
 };

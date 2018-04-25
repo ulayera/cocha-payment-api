@@ -14,4 +14,8 @@ module.exports = {
     controller: 'ItauController',
     action: 'freezeAmount',
   },
+  "GET /methods/itau/sessions/:sessionId/webpay-charge/:webpayId": {
+    controller: 'ItauController',
+    action: 'checkPaymentAndRetry',
+  },
 };

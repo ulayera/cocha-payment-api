@@ -1,6 +1,7 @@
 let paymentLogicService = require('../services/PaymentLogicService');
 
 async function createCharge(ctx) {
+  console.log(`ChargesController.createCharge() -> ${ctx.req.method} ${ctx.originalUrl}`);
   let charge = await paymentLogicService.createCharge(ctx.params);
   if (charge.isValid === false) {
     throw {
@@ -19,12 +20,12 @@ async function createCharge(ctx) {
 }
 
 async function getCharge(ctx) {
+  console.log(`ChargesController.getCharge() -> ${ctx.req.method} ${ctx.originalUrl}`);
   let attempt = await paymentLogicService.getCharge(ctx.params.sessionId, ctx.params.chargeId);
   ctx.body = {
     chargeId: attempt._id, status: attempt.status
   };
 }
-
 
 module.exports = {
   createCharge: createCharge,

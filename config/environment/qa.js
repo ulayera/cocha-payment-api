@@ -49,7 +49,8 @@ module.exports = {
 	},
 	path: {
     local: {
-      charges: 'http://localhost:' + process.env.PORT + '/sessions/:sessionId/charges'
+      charges: 'http://localhost:' + process.env.PORT + '/sessions/:sessionId/charges',
+      sessions: 'http://localhost:' + process.env.PORT + '/sessions/:sessionId/'
     },
 		itau: {
 			validateRut: 'http://apicanjegencert.celmedia.cl/ValidaRutCanje',

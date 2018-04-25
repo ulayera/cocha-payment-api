@@ -4,7 +4,7 @@
 const soapServices = require('./SoapService');
 const logService = require('./LogService');
 
-async function startPayment(_paymentParams, _workflowData) {
+async function getPaymentData(_paymentParams, _workflowData) {
   let url = Koa.config.path.webpay.setPayment;
   let params = {
     paySource: _paymentParams.source || 'OJ', //xsd:string|OJ,SMART,
@@ -81,7 +81,7 @@ async function checkPayment(_paymentToken, _workflowData) {
 }
 
 module.exports = {
-  startPayment: startPayment,
+  getPaymentData: getPaymentData,
   checkPayment: checkPayment
 };
 

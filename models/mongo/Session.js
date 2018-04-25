@@ -5,7 +5,7 @@ let schema = new mongoose.Schema({
   wappOkUrl: String, // url to redirect in case of successful payment
   wappErrorUrl: String, // url to redirect in case of unsuccessful payment
   refCode : String,
-  business : String,
+  businessNumber : String,
   name: String, //person name for contact purposes (who created the session)
   mail: String, //person mail for contact purposes (who created the session)
   date: Date,
