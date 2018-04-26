@@ -6,8 +6,8 @@ const itauLogicService = require('../services/ItauLogicService');
 async function attemptLogin(ctx) {
   console.log(`ItauController.attemptLogin() -> ${ctx.req.method} ${ctx.originalUrl}`);
   let itauCustomerData = await itauLogicService.generateDynamicKey(ctx);
+  console.log("TODO: borrar " + itauCustomerData.dynamicKey);
   ctx.body = {
-    dynamicKey: itauCustomerData.dynamicKey,
     rut : itauCustomerData.rut + '-' + itauCustomerData.dv,
     phoneNumber : itauCustomerData.phoneNumber,
     email : itauCustomerData.email,
@@ -41,9 +41,17 @@ async function checkPaymentAndRetry(ctx) {
   ctx.body = await itauLogicService.checkPaymentAndRetry(ctx);
 }
 
+
+async function unfreezeAmount(ctx) {
+  console.log(`ItauController.unfreezeAmount() -> ${ctx.req.method} ${ctx.originalUrl}`);
+  let variable = await itauLogicService.unfreezeAmount(ctx);
+  ctx.body = variable;
+}
+
 module.exports = {
   attemptLogin: attemptLogin,
   getBalance: getBalance,
   freezeAmount: freezeAmount,
+  unfreezeAmount: unfreezeAmount,
   checkPaymentAndRetry: checkPaymentAndRetry,
 };

@@ -193,8 +193,6 @@ async function checkPaymentAndRetry(ctx) {
     });
     return {
       status: Koa.config.states.pending,
-      // points: userData.availablePoints, // para que quiere saber esto el wapp?
-      // amount: userData.availableAmount,
       url: postChargesData.redirectUrl,
       okPath: null,
       errPath: null
@@ -217,17 +215,46 @@ async function checkPaymentAndRetry(ctx) {
     if (!informPaymentData || !informPaymentData.STATUS || informPaymentData.STATUS.toUpperCase() !== 'OK') {
       slackService.log('info', JSON.stringify(informPaymentData), 'Smart Error');
     }
-    confirmationServices.reportPay();
+    // TODO: cual paymentSrc?
+    await confirmationServices.reportPay( {
+      productSrc : session.descriptions[0].productType,
+      sessionId : ctx.params.sessionId
+    });
     return {
       status: Koa.config.states.complete,
-      // points: userData.availablePoints,
-      // amount: userData.availableAmount,
       url: null,
       okPath: session.wappOkUrl,
       errPath: session.wappErrorUrl
     };
   }
 }
+
+async function unfreezeAmount(ctx) {
+  let session = await sessionsDataService.get(ctx.params.sessionId);
+  let status = _.find(session.statuses, (status) => {
+    return status.method.toLowerCase() === 'itau';
+  });
+  let args = {
+    rut: status.info.rut,
+    dv: status.info.dv,
+    preExchangeId: status.info.id,
+    authSession: ctx.authSession || {}
+  };
+  let cancelPreExchangeData = await itauClientService.cancelPreExchange(args);
+  return {
+    status: 'Complete',
+    okPath: session.wappOkUrl,
+    errPath: session.wappErrorUrl
+  };
+}
+
+module.exports = {
+  generateDynamicKey: generateDynamicKey,
+  getBalance: getBalance,
+  freezeAmount: freezeAmount,
+  unfreezeAmount: unfreezeAmount,
+  checkPaymentAndRetry: checkPaymentAndRetry,
+};
 
 async function spendFrozenAmount(ctx) {
   let args = {
@@ -241,10 +268,6 @@ async function spendFrozenAmount(ctx) {
     authSession: ctx.authSession || {}
   };
   return await itauClientService.requestExchange(args);
-}
-
-async function freeFrozenAmount() {
-
 }
 
 async function persistToSession(session, preExchangeData) {
@@ -270,11 +293,3 @@ async function persistToSession(session, preExchangeData) {
   await sessionsDataService.save(session);
   return status;
 }
-
-module.exports = {
-  generateDynamicKey: generateDynamicKey,
-  getBalance: getBalance,
-  freezeAmount: freezeAmount,
-  freeFrozenAmount: freeFrozenAmount,
-  checkPaymentAndRetry: checkPaymentAndRetry,
-};

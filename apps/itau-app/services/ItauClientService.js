@@ -2,7 +2,7 @@
 /* jshint strict: false, esversion: 6 */
 
 const webServices = require('cocha-external-services').webServices;
-const logService = require('./../../../services/LogService');
+const logService = require('../../../services/LogService');
 
 async function validateRut(args) {
 	let url = Koa.config.path.itau.validateRut;
@@ -463,7 +463,7 @@ async function cancelPreExchange(args) {
           description = `Internal error, it is not possible to process the request, Data: ${status} - ${message}`;
           code = 'InternalError';
         }
-
+        if (status == 153) status = 500; //status code 153 is not supported by koa response
         reject({
           status: status,
           message: {

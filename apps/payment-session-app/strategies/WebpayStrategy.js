@@ -17,7 +17,7 @@ async function startPayment(paymentData, authSession) {
 
 async function checkPayment(attempt, authSession) {
   let checkResult =  await webpayService.checkPayment(attempt.info.tokenWebPay, authSession);
-  checkResult.status = 'complete';
+  //checkResult.status = 'complete';
   return {
     isPaid : String(checkResult.status).toUpperCase() === 'complete'.toUpperCase(),
     status : checkResult.status,
@@ -26,7 +26,6 @@ async function checkPayment(attempt, authSession) {
 }
 
 module.exports = {
-  strategyName : "webpay",
   startPayment: startPayment,
   checkPayment: checkPayment
 };
