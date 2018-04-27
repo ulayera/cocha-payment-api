@@ -225,8 +225,8 @@ async function checkPaymentAndRetry(ctx) {
     return {
       status: Koa.config.states.complete,
       url: null,
-      okPath: session.wappOkUrl,
-      errPath: session.wappErrorUrl
+      okPath: session.wappOkUrl + '/' + session._id,
+      errPath: session.wappErrorUrl + '/' + session._id
     };
   }
 }
