@@ -34,16 +34,6 @@ async function postCharges(obj) {
   });
 }
 
-async function getSessionStatus(obj) {
-  options.url = Koa.config.path.local.sessions + '/' + obj.sessionId;
-  return await new Promise((resolve, reject) => {
-    request.get(options, function (error, response, body) {
-      if (error) reject(error);
-      resolve(body);
-    });
-  });
-}
-
 module.exports = {
   postCharges: postCharges,
   getCharge: getCharge,
