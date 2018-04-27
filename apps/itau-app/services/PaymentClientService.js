@@ -10,7 +10,7 @@ var options = {
 
 
 async function getCharge(obj) {
-  options.url = Koa.config.path.local.charges.replace(':sessionId', obj.sessionId) + '/' + obj.chargeId;
+  options.url = Koa.config.path.local.charges.replace(':sessionId', obj.sessionId) + obj.chargeId;
   return await new Promise((resolve, reject) => {
     request.get(options, function (error, response, body) {
       if (error) reject(error);
