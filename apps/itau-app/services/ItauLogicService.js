@@ -211,7 +211,9 @@ async function checkPaymentAndRetry(ctx) {
       itauStatus.info.spentAmount,
       Koa.config.codes.type.points,
       Koa.config.codes.method.itau,
-      ctx.authSession);
+      ctx.authSession,
+      itauStatus.info.productId
+      );
     if (!informPaymentData || !informPaymentData.STATUS || informPaymentData.STATUS.toUpperCase() !== 'OK') {
       slackService.log('info', JSON.stringify(informPaymentData), 'Smart Error');
     }

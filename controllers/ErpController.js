@@ -105,6 +105,6 @@ async function checkTransaction(ctx){
 
 
 module.exports = {
-  assignTransaction: assignTransaction
-  ,checkTransaction: checkTransaction
+  assignTransaction: assignTransaction,
+  checkTransaction: checkTransaction
 };

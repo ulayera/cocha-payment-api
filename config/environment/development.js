@@ -3,7 +3,6 @@
 module.exports = {
 	appName: 'PAYMENTS-DESA',
 	paymentWappUrl: 'http://pagos-desa.cocha.com/:sessionid',
-	uberPaymentWappUrl: 'http://pagos-desa.cocha.com/session/:sessionid',
 	appHashCode: process.env.PAYMENT_APP_CODE || 'C0CH4P4YM3NT.03c71e74f6bd1f32534d6289e44d7869',
 	commerceCodes: {
 		cocha: '597026016959'
@@ -49,7 +48,7 @@ module.exports = {
 	},
 	path: {
 		local: {
-			charges: 'http://localhost:1337/sessions/:sessionId/charges',
+      charges: 'http://localhost:1337/sessions/:sessionId/charges/',
       sessions: 'http://localhost:1337/sessions/'
 		},
 		itau: {
@@ -78,9 +77,6 @@ module.exports = {
 	},
 	security: {
 		itau: {
-      // providerId: 1,
-      // apiKey: '$2y$10$qcSivIyzCm2g0u53WCk5Sug/h3wENYIRIxmuCcbOUq2k4nnLpnMz6',
-      // apiKeyUser: '$2y$10$cZcEXCkUQgQmb729sfnor.tA3rwPEwhLGmb2tEuJ3/UuHew1FdosO',
       providerId: 31,
       apiKey: '$2y$10$L2E1AYypB4J.mkKTSqXZbOS.wfmrsWXX3OAEkLEcJR2Kz3OT/tGs.',
       apiKeyUser: '$2y$10$bnJAORFOIQSAHpNQ0T0Q5.NTlcaQrGj0c0ve.e02TpONZHJwEt5k.'

@@ -3,7 +3,6 @@
 module.exports = {
 	appName: 'PAYMENTS',
 	paymentWappUrl: 'https://pagos.cocha.com/:sessionid',
-	uberPaymentWappUrl: 'http://pagos.cocha.com/session/:sessionid',
 	appHashCode: process.env.PAYMENT_APP_CODE || 'C0CH4P4YM3NT.03c71e74f6bd1f32534d6289e44d7869',
 	commerceCodes: {
 		cocha: '597027395651'
@@ -14,12 +13,12 @@ module.exports = {
 	},
 	states: {
     created: 'CREADO',
-    pending: 'PENDIENTE',
+    pending: 'PENDING',
     paid: 'PAGADO',
-    failed: 'FALLO',
-    erpPending: 'PENDIENTE-SMART',
-    erpFail: 'FALLO-SMART',
-    closed: 'CERRADO',
+		failed: 'FALLO',
+		erpPending: 'PENDIENTE-SMART',
+		erpFail: 'FALLO-SMART',
+    closed: 'CLOSED',
     complete: 'COMPLETE'
 	},
 	codes: {
@@ -49,7 +48,8 @@ module.exports = {
 	},
 	path: {
     local: {
-      charges: 'http://localhost:' + process.env.PORT + '/sessions/:sessionId/charges'
+      charges: 'http://pagos.cocha.com/sessions/:sessionId/charges/',
+      sessions: 'http://pagos.cocha.com/sessions/:sessionId/'
     },
 		itau: {
 			validateRut: 'http://apicanjegenprep.celmedia.cl/ValidaRutCanje',
@@ -76,11 +76,11 @@ module.exports = {
 		}
 	},
 	security: {
-		itau: {
-			providerId: 1,
-			apiKey: '$2y$10$qcSivIyzCm2g0u53WCk5Sug/h3wENYIRIxmuCcbOUq2k4nnLpnMz6',
-			apiKeyUser: '$2y$10$cZcEXCkUQgQmb729sfnor.tA3rwPEwhLGmb2tEuJ3/UuHew1FdosO'
-		}
+    itau: {
+      providerId: 31,
+      apiKey: '$2y$10$L2E1AYypB4J.mkKTSqXZbOS.wfmrsWXX3OAEkLEcJR2Kz3OT/tGs.',
+      apiKeyUser: '$2y$10$bnJAORFOIQSAHpNQ0T0Q5.NTlcaQrGj0c0ve.e02TpONZHJwEt5k.'
+    }
 	},
 	log: {
 		level: 'info',

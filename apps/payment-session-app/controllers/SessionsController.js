@@ -7,7 +7,12 @@ let paymentLogicService = require('../services/PaymentLogicService');
  */
 async function createSession(ctx) {
   console.log(`SessionsController.createSession() -> ${ctx.req.method} ${ctx.originalUrl}`);
-  ctx.body = await paymentLogicService.createSession(ctx.params);
+  let session = await paymentLogicService.createSession(ctx.params);
+  ctx.body = {
+    status: 'Complete',
+    paymentToken: session._id.toString(),
+    url: Koa.config.paymentWappUrl.replace(':sessionid', session._id.toString())
+  };
 }
 
 async function checkStatus(ctx) {
