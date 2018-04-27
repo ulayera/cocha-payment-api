@@ -21,6 +21,7 @@ async function getCharge(obj) {
 
 async function postCharges(obj) {
   options.url = Koa.config.path.local.charges.replace(':sessionId', obj.sessionId);
+  console.log("PaymentClientService.postCharges() -> " + options.url);
   options.body = {
     method: obj.method,
     amount: obj.amount
