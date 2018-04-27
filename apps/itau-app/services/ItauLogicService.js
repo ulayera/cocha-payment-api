@@ -225,8 +225,8 @@ async function checkPaymentAndRetry(ctx) {
     return {
       status: Koa.config.states.complete,
       url: null,
-      okPath: session.wappOkUrl + '/' + session._id,
-      errPath: session.wappErrorUrl + '/' + session._id
+      okPath: session.wappOkUrl + '/' + session._id.toString(),
+      errPath: session.wappErrorUrl + '/' + session._id.toString()
     };
   }
 }
@@ -245,8 +245,8 @@ async function unfreezeAmount(ctx) {
   let cancelPreExchangeData = await itauClientService.cancelPreExchange(args);
   return {
     status: 'Complete',
-    okPath: session.wappOkUrl,
-    errPath: session.wappErrorUrl
+    okPath: session.wappOkUrl + '/' + session._id.toString(),
+    errPath: session.wappErrorUrl + '/' + session._id.toString()
   };
 }
 
