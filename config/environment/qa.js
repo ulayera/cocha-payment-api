@@ -48,8 +48,8 @@ module.exports = {
 	},
 	path: {
     local: {
-      charges: 'http://mid-qa.cocha.com/payment/v1/sessions/:sessionId/charges/',
-      sessions: 'http://mid-qa.cocha.com/payment/v1/sessions/:sessionId/'
+      charges: 'https://mid-qa.cocha.com/payment/v1/sessions/:sessionId/charges/',
+      sessions: 'https://mid-qa.cocha.com/payment/v1/sessions/:sessionId/'
     },
 		itau: {
 			validateRut: 'http://apicanjegencert.celmedia.cl/ValidaRutCanje',
