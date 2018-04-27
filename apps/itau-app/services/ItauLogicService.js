@@ -168,7 +168,9 @@ async function checkPaymentAndRetry(ctx) {
     status =>
       status.info.tokenWebPay === ctx.params.webpayId
   )._id.toString();
+  console.log(chargeId);
   let chargeStatus = await paymentClientService.getCharge({sessionId : ctx.params.sessionId, chargeId : chargeId});
+  console.log(JSON.stringify(chargeStatus,null,2));
   /**
    * valida intentos maximos webpay (3)
    */
