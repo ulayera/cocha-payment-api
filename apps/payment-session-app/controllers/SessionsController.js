@@ -47,8 +47,8 @@ async function getSessionAsDeal(ctx) {
     returning: session.descriptions[0].returningDate,
     source: session.descriptions[0].productType + ': ' + session.descriptions[0].destination,
     price: session.total,
-    pathError: session.wappErrorUrl + '/' + session._id.toString(),
-    pathOk: session.wappOkUrl + '/' + session._id.toString(),
+    pathError: session.wappErrorUrl + session._id.toString(),
+    pathOk: session.wappOkUrl + session._id.toString(),
     status: session.status,
   };
 }
