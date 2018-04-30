@@ -111,7 +111,7 @@ async function status(ctx) {
   ctx.body = {
     businessNumber: session._id.toString(),
     ccode: session.refCode,
-    status: (session.status.toUpperCase() === Koa.config.states.complete) ? 'Complete' : 'Pending'
+    status: (session.status.toUpperCase() === Koa.config.states.complete) ? 'ok' : 'Pending'
   }
 }
 
