@@ -248,8 +248,8 @@ async function unfreezeAmount(ctx) {
   let cancelPreExchangeData = await itauClientService.cancelPreExchange(args);
   return {
     status: 'Complete',
-    okPath: session.wappOkUrl + session._id.toString(),
-    errPath: session.wappErrorUrl + session._id.toString()
+    okPath: session.wappOkUrl + Koa.config.codes.source[session.descriptions[0].productType] + session._id.toString(),
+    errPath: session.wappErrorUrl + Koa.config.codes.source[session.descriptions[0].productType] + session._id.toString()
   };
 }
 

@@ -48,7 +48,7 @@ async function getSessionAsDeal(ctx) {
     source: session.descriptions[0].productType + ': ' + session.descriptions[0].destination,
     price: session.total,
     pathError: session.wappErrorUrl + session._id.toString(),
-    pathOk: session.wappOkUrl + session._id.toString(),
+    pathOk: session.wappOkUrl + Koa.config.codes.source[session.descriptions[0].productType] + session._id.toString(),
     status: session.status,
   };
 }
