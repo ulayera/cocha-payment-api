@@ -10,4 +10,8 @@ module.exports = {
 		controller: 'ErpController',
 		action: 'checkTransaction'
 	},
+	'GET /statusPayment/:sessionId/:xpnr': {
+		controller: 'ErpController',
+		action: 'status'
+	},
 };
