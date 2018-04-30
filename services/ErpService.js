@@ -26,10 +26,12 @@ async function informPayment(_sessionId,_info,_amount,_type,_method,_workflowDat
 	try {
 		_workflowData.serviceContext = 'payment';
 		_workflowData.logFunction = logService.logCallToService;
-    console.log("ErpService.informPayment() -> " + params);
+    console.log("ErpService.informPayment() -> " + JSON.stringify(params));
 		response = await soapServices.callService(Koa.config.path.erp.redeem, 'canjeServiceWS', params, _workflowData);
+    console.log("ErpService.informPayment() -> " + JSON.stringify(response));
 	} catch (err) {
 		response = err;
+    console.log("ErpService.informPayment() -> " + JSON.stringify(response));
 	}
 
 	return response;
