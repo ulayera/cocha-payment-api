@@ -14,8 +14,4 @@ module.exports = {
     controller: 'ErpController',
     action: 'status'
   },
-  'GET /statusPayment/:sessionId/': {
-    controller: 'ErpController',
-    action: 'status'
-  },
 };
