@@ -21,7 +21,7 @@ async function reportPay(args) {
 			} else {
 				resolve(result);
 			}
-		}, _ctx.authSession);
+		}, args.authSession);
 	});
 	return data;
 }

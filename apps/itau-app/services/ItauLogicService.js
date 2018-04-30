@@ -288,7 +288,8 @@ async function closeCurrentPayment(session, ctx) {
   console.log("ConfirmationServices.reportPay");
   await confirmationServices.reportPay( {
     productSrc : session.descriptions[0].productType,
-    sessionId : ctx.params.sessionId
+    sessionId : ctx.params.sessionId,
+    authSession : ctx.authSession
   });
 }
 
