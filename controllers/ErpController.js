@@ -109,7 +109,7 @@ async function status(ctx) {
   console.log(`ErpController.status() -> ${ctx.req.method} ${ctx.originalUrl}`);
   let session = await paymentLogicService.getSession(ctx.params.sessionId);
   ctx.body = {
-    businessNumber: session.businessNumber,
+    businessNumber: session._id.toString(),
     ccode: session.refCode,
     status: (session.status.toUpperCase() === Koa.config.states.complete) ? 'Complete' : 'Pending'
   }
