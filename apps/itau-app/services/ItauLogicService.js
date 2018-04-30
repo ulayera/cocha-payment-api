@@ -142,6 +142,7 @@ async function freezeAmount(ctx) {
       spendingAmount: status.amount,
       productId: status.info.productId,
     });
+    await closeCurrentPayment(session, ctx);
     // valida que el canje definitivo se realizó ok antes de retornar
     if (!spendFrozenAmountData || !spendFrozenAmountData.id) {
       throw {
@@ -200,31 +201,30 @@ async function checkPaymentAndRetry(ctx) {
       errPath: null
     };
   } else {
-    let itauStatus = _.find(session.statuses, status=>
-      (status.method.toLowerCase()==='itau' &&
-        status.status.toUpperCase()===Koa.config.states.paid)
+    let status = _.find(session.statuses,
+      status =>
+        status.status.tokenWebPay === Koa.status.states.paid &&
+        status.method.toLowerCase() === 'itau'
     );
-    let informPaymentData = await erpServices.informPayment(
-      ctx.params.sessionId,
-      {
-        rut: itauStatus.info.rut + '-' + itauStatus.info.dv,
-        paymentId: itauStatus.info.id
-      },
-      itauStatus.info.spentAmount,
-      Koa.config.codes.type.points,
-      Koa.config.codes.method.itau,
-      ctx.authSession,
-      itauStatus.info.productId
-      );
-    if (!informPaymentData || !informPaymentData.STATUS || informPaymentData.STATUS.toUpperCase() !== 'OK') {
-      console.log("SlackService.log");
-      slackService.log('info', JSON.stringify(informPaymentData), 'Smart Error');
-    }
-    console.log("ConfirmationServices.reportPay");
-    await confirmationServices.reportPay( {
-      productSrc : session.descriptions[0].productType,
-      sessionId : ctx.params.sessionId
+    let spendFrozenAmountData = await spendFrozenAmount({
+      rut: status.info.rut,
+      dv: status.info.dv,
+      canjeId: status.info.id,
+      spendingAmount: status.amount,
+      productId: status.info.productId,
     });
+    await closeCurrentPayment(session, ctx);
+    // valida que el canje definitivo se realizó ok antes de retornar
+    if (!spendFrozenAmountData || !spendFrozenAmountData.id) {
+      throw {
+        msg: 'Couldn\'t confirm Itaú payment.',
+        code: 'SessionAmountsNotEmptyError',
+        status: 401
+      };
+    } else {
+      status.status = Koa.config.states.closed;
+      await sessionsDataService.save(session);
+    }
     return {
       status: Koa.config.states.complete,
       url: null,
@@ -260,6 +260,37 @@ module.exports = {
   unfreezeAmount: unfreezeAmount,
   checkPaymentAndRetry: checkPaymentAndRetry,
 };
+/*
+ Locally used functions
+ */
+
+async function closeCurrentPayment(session, ctx) {
+  let itauStatus = _.find(session.statuses, status=>
+    (status.method.toLowerCase()==='itau' &&
+      status.status.toUpperCase()===Koa.config.states.paid)
+  );
+  let informPaymentData = await erpServices.informPayment(
+    ctx.params.sessionId,
+    {
+      rut: itauStatus.info.rut + '-' + itauStatus.info.dv,
+      paymentId: itauStatus.info.id
+    },
+    itauStatus.info.spentAmount,
+    Koa.config.codes.type.points,
+    Koa.config.codes.method.itau,
+    ctx.authSession,
+    itauStatus.info.productId
+  );
+  if (!informPaymentData || !informPaymentData.STATUS || informPaymentData.STATUS.toUpperCase() !== 'OK') {
+    console.log("SlackService.log");
+    slackService.log('info', JSON.stringify(informPaymentData), 'Smart Error');
+  }
+  console.log("ConfirmationServices.reportPay");
+  await confirmationServices.reportPay( {
+    productSrc : session.descriptions[0].productType,
+    sessionId : ctx.params.sessionId
+  });
+}
 
 async function spendFrozenAmount(ctx) {
   let args = {
