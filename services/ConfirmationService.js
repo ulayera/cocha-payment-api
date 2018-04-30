@@ -12,7 +12,7 @@ async function reportPay(args) {
 	let params = {
 		paymentSessionCode: code + args.sessionId
 	};
-  _ctx.authSession.logFunction = logService.logCallToService;
+  args.authSession.logFunction = logService.logCallToService;
   console.log("ConfirmationService.reportPay -> " + url + "\n" + JSON.stringify(params, null, 2));
 	let data = await new Promise((resolve, reject) => {
 		webServices.get('payment', url, params, null, (err, result) => {
