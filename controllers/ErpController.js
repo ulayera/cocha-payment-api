@@ -5,6 +5,7 @@ const paymentLogicService = require('../apps/payment-session-app/services/Paymen
 
 
 async function assignTransaction(ctx){
+  console.log("ErpController.assignTransaction() -> " + JSON.stringify(ctx));
   try {
     if (!ctx.params.xpnr || !ctx.params.businessNumber || !ctx.params.sessionToken) {
       throw {
@@ -55,6 +56,7 @@ async function assignTransaction(ctx){
 
 
 async function checkTransaction(ctx){
+  console.log("ErpController.checkTransaction() -> " + JSON.stringify(ctx));
   try{
     if (!ctx.params.xpnr || !ctx.params.sessionToken) {
       throw {
