@@ -217,9 +217,10 @@ async function checkPaymentAndRetry(ctx) {
       itauStatus.info.productId
       );
     if (!informPaymentData || !informPaymentData.STATUS || informPaymentData.STATUS.toUpperCase() !== 'OK') {
+      console.log("SlackService.log");
       slackService.log('info', JSON.stringify(informPaymentData), 'Smart Error');
     }
-    // TODO: cual paymentSrc?
+    console.log("ConfirmationServices.reportPay");
     await confirmationServices.reportPay( {
       productSrc : session.descriptions[0].productType,
       sessionId : ctx.params.sessionId
