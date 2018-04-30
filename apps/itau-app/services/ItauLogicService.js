@@ -282,7 +282,6 @@ async function closeCurrentPayment(session, ctx) {
     itauStatus.info.productId
   );
   if (!informPaymentData || !informPaymentData.STATUS || informPaymentData.STATUS.toUpperCase() !== 'OK') {
-    console.log("SlackService.log");
     slackService.log('info', JSON.stringify(informPaymentData), 'Smart Error');
   }
   console.log("ConfirmationServices.reportPay");
