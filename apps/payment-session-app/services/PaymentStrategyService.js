@@ -4,7 +4,7 @@ let webpayStrategy = require('../strategies/WebpayStrategy');
 
 async function startPayment(paymentData, authSession) {
   switch (paymentData.method) {
-    case 'webpay' :
+    case 'webpay' || 'TarjetaRipley' :
       return await webpayStrategy.startPayment(paymentData, authSession);
     default:
       throw {
@@ -19,7 +19,7 @@ async function startPayment(paymentData, authSession) {
 
 async function checkPayment(attempt, authSession) {
   switch (attempt.method) {
-    case 'webpay' :
+    case 'webpay' || 'TarjetaRipley' :
       return await webpayStrategy.checkPayment(attempt, authSession);
     default:
       throw {
