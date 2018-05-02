@@ -13,7 +13,7 @@ async function startPayment(paymentData, authSession) {
         status: 400,
         message: {
           code: 'PaymentMethodUnavailableError',
-          msg: 'El método de pago seleccionado no está disponible'
+          msg: 'El método de pago seleccionado no está disponible: ' + paymentData.method
         }
       };
   }
@@ -30,7 +30,7 @@ async function checkPayment(attempt, authSession) {
         status: 400,
         message: {
           code: 'PaymentMethodUnavailableError',
-          msg: 'El método de pago seleccionado no está disponible'
+          msg: 'El método de pago seleccionado no está disponible: ' + attempt.method
         }
       };
   }
