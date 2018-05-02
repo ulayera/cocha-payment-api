@@ -6,7 +6,8 @@ async function startPayment(paymentData, authSession) {
     amount: paymentData.amount,
     cochaCode: paymentData.refCode,
     holderName: paymentData.name,
-    holderEmail: paymentData.email
+    holderEmail: paymentData.email,
+    type : paymentData.method
   };
   let paymentResult = await webpayService.getPaymentData(params, authSession);
   return {
