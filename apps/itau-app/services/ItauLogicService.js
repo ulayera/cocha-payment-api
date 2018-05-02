@@ -6,6 +6,8 @@ const erpServices = require('../../../services/ErpService');
 const slackService = require('../../../services/SlackService');
 const confirmationServices = require('../../../services/ConfirmationService');
 
+let alternativePaymentMethod = (["PAYMENTS-QA","PAYMENTS-DESA"].indexOf(Koa.config.appName) < 0) ? "webpay" : "TarjetaRipley";
+
 async function generateDynamicKey(ctx) {
   let session = await sessionsDataService.get(ctx.params.sessionId);
   if (ctx.params.rut.indexOf('-') > -1) {
@@ -131,7 +133,7 @@ async function freezeAmount(ctx) {
   if (session.toSplitAmount.value > 0) {
     return await paymentClientService.postCharges({
       sessionId: session._id.toString(),
-      method: "webpay",
+      method: alternativePaymentMethod,
       amount: session.toSplitAmount.value //remaining value is already reduced
     });
   } else {
@@ -191,7 +193,7 @@ async function checkPaymentAndRetry(ctx) {
   if (chargeStatus.status.toUpperCase() !== Koa.config.states.paid.toUpperCase()) {
     let postChargesData = await paymentClientService.postCharges({
       sessionId: session._id.toString(),
-      method: "webpay",
+      method: alternativePaymentMethod,
       amount: session.toSplitAmount.value //remaining value is already reduced
     });
     return {
