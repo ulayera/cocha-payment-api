@@ -41,7 +41,7 @@ async function getSessionAsDeal(ctx) {
     departure: session.descriptions[0].departureDate,
     destination: session.descriptions[0].destination,
     infants: session.descriptions[0].infants,
-    numberRooms: session.descriptions[0].numberRooms,
+    numberRooms: session.descriptions[0].totalRooms,
     origin: session.descriptions[0].origin,
     product: session.descriptions[0].productType,
     returning: session.descriptions[0].returningDate,
