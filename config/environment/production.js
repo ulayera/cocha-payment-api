@@ -12,14 +12,14 @@ module.exports = {
 		flighthotel: 'agenteinternet@cocha.com'
 	},
 	states: {
-    created: 'CREADO',
-    pending: 'PENDING',
-    paid: 'PAGADO',
+		created: 'CREADO',
+		pending: 'PENDING',
+		paid: 'PAGADO',
 		failed: 'FALLO',
 		erpPending: 'PENDIENTE-SMART',
 		erpFail: 'FALLO-SMART',
-    closed: 'CLOSED',
-    complete: 'COMPLETE'
+		closed: 'CLOSED',
+		complete: 'COMPLETE'
 	},
 	codes: {
 		currency: {
@@ -47,10 +47,10 @@ module.exports = {
 		}
 	},
 	path: {
-    local: {
-      charges: 'https://mid.cocha.com/payment/v1/sessions/:sessionId/charges/',
-      sessions: 'https://mid.cocha.com/payment/v1/sessions/:sessionId/'
-    },
+		local: {
+			charges: 'https://mid.cocha.com/payment/v1/sessions/:sessionId/charges/',
+			sessions: 'https://mid.cocha.com/payment/v1/sessions/:sessionId/'
+		},
 		itau: {
 			validateRut: 'http://itau20apicanje.clop.cl/ValidaRutCanje',
 			generateDynamicKey: 'http://itau20apicanje.clop.cl/GeneraClaveDinamica',
@@ -60,8 +60,8 @@ module.exports = {
 			validateClient: 'http://itau20apicanje.clop.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
 			requestExchange: 'http://itau20apicanje.clop.cl/RealizarCanje',
 			cancelPreExchange: 'http://itau20apicanje.clop.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId/:productQuantity',
-      listAccounts: 'http://itau20apicanje.clop.cl/ListarCuentas/:rut/:dv/:providerId/:dynamicKeyId/',
-      selectAccount: 'http://itau20apicanje.clop.cl/SeleccionaCuenta/:rut/:dv/:providerId/:dynamicKeyId/:accountId/',
+			listAccounts: 'http://itau20apicanje.clop.cl/ListarCuentas/:rut/:dv/:providerId/:dynamicKeyId/',
+			selectAccount: 'http://itau20apicanje.clop.cl/SeleccionaCuenta/:rut/:dv/:providerId/:dynamicKeyId/:accountId/',
 		},
 		webpay: {
 			setPayment: './resources/onlinePayWS-prod.wsdl', // 'http://192.168.254.66:8080/process/onlinePayWS?wsdl',
@@ -76,11 +76,11 @@ module.exports = {
 		}
 	},
 	security: {
-    itau: {
-      providerId: 31,
-      apiKey: '$2y$10$L2E1AYypB4J.mkKTSqXZbOS.wfmrsWXX3OAEkLEcJR2Kz3OT/tGs.',
-      apiKeyUser: '$2y$10$bnJAORFOIQSAHpNQ0T0Q5.NTlcaQrGj0c0ve.e02TpONZHJwEt5k.'
-    }
+		itau: {
+			providerId: 31,
+			apiKey: '$2y$10$L2E1AYypB4J.mkKTSqXZbOS.wfmrsWXX3OAEkLEcJR2Kz3OT/tGs.',
+			apiKeyUser: '$2y$10$bnJAORFOIQSAHpNQ0T0Q5.NTlcaQrGj0c0ve.e02TpONZHJwEt5k.'
+		}
 	},
 	log: {
 		level: 'info',

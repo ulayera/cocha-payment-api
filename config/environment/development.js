@@ -12,14 +12,14 @@ module.exports = {
 		flighthotel: 'agenteinternet@cocha.com'
 	},
 	states: {
-    created: 'CREADO',
-    pending: 'PENDING',
-    paid: 'PAGADO',
+		created: 'CREADO',
+		pending: 'PENDING',
+		paid: 'PAGADO',
 		failed: 'FALLO',
 		erpPending: 'PENDIENTE-SMART',
 		erpFail: 'FALLO-SMART',
-    closed: 'CLOSED',
-    complete: 'COMPLETE'
+		closed: 'CLOSED',
+		complete: 'COMPLETE'
 	},
 	codes: {
 		currency: {
@@ -48,8 +48,8 @@ module.exports = {
 	},
 	path: {
 		local: {
-      charges: 'http://localhost:1337/sessions/:sessionId/charges/',
-      sessions: 'http://localhost:1337/sessions/'
+			charges: 'http://localhost:1337/sessions/:sessionId/charges/',
+			sessions: 'http://localhost:1337/sessions/'
 		},
 		itau: {
 			validateRut: 'http://apicanjegencert.celmedia.cl/ValidaRutCanje',
@@ -77,9 +77,9 @@ module.exports = {
 	},
 	security: {
 		itau: {
-      providerId: 31,
-      apiKey: '$2y$10$L2E1AYypB4J.mkKTSqXZbOS.wfmrsWXX3OAEkLEcJR2Kz3OT/tGs.',
-      apiKeyUser: '$2y$10$bnJAORFOIQSAHpNQ0T0Q5.NTlcaQrGj0c0ve.e02TpONZHJwEt5k.'
+			providerId: 31,
+			apiKey: '$2y$10$L2E1AYypB4J.mkKTSqXZbOS.wfmrsWXX3OAEkLEcJR2Kz3OT/tGs.',
+			apiKeyUser: '$2y$10$bnJAORFOIQSAHpNQ0T0Q5.NTlcaQrGj0c0ve.e02TpONZHJwEt5k.'
 		}
 	},
 	log: {

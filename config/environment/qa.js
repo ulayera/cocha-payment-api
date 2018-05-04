@@ -12,14 +12,14 @@ module.exports = {
 		flighthotel: 'agenteinternet@cocha.com'
 	},
 	states: {
-    created: 'CREADO',
-    pending: 'PENDING',
-    paid: 'PAGADO',
+		created: 'CREADO',
+		pending: 'PENDING',
+		paid: 'PAGADO',
 		failed: 'FALLO',
 		erpPending: 'PENDIENTE-SMART',
 		erpFail: 'FALLO-SMART',
-    closed: 'CLOSED',
-    complete: 'COMPLETE'
+		closed: 'CLOSED',
+		complete: 'COMPLETE'
 	},
 	codes: {
 		currency: {
@@ -47,10 +47,10 @@ module.exports = {
 		}
 	},
 	path: {
-    local: {
-      charges: 'https://mid-qa.cocha.com/payment/v1/sessions/:sessionId/charges/',
-      sessions: 'https://mid-qa.cocha.com/payment/v1/sessions/:sessionId/'
-    },
+		local: {
+			charges: 'https://mid-qa.cocha.com/payment/v1/sessions/:sessionId/charges/',
+			sessions: 'https://mid-qa.cocha.com/payment/v1/sessions/:sessionId/'
+		},
 		itau: {
 			validateRut: 'http://apicanjegencert.celmedia.cl/ValidaRutCanje',
 			generateDynamicKey: 'http://apicanjegencert.celmedia.cl/GeneraClaveDinamica',
@@ -60,8 +60,8 @@ module.exports = {
 			validateClient: 'http://apicanjegencert.celmedia.cl/ValidarStatusCliente/:rut/:dv/:providerId/:dynamicKeyId',
 			requestExchange: 'http://apicanjegencert.celmedia.cl/RealizarCanje',
 			cancelPreExchange: 'http://apicanjegencert.celmedia.cl/AnularPrecanje/:rut/:dv/:providerId/:preExchangeId/:productId/:productQuantity',
-      listAccounts: 'http://apicanjegencert.celmedia.cl/ListarCuentas/:rut/:dv/:providerId/:dynamicKeyId/',
-      selectAccount: 'http://apicanjegencert.celmedia.cl/SeleccionaCuenta/:rut/:dv/:providerId/:dynamicKeyId/:accountId/',
+			listAccounts: 'http://apicanjegencert.celmedia.cl/ListarCuentas/:rut/:dv/:providerId/:dynamicKeyId/',
+			selectAccount: 'http://apicanjegencert.celmedia.cl/SeleccionaCuenta/:rut/:dv/:providerId/:dynamicKeyId/:accountId/',
 		},
 		webpay: {
 			setPayment: './resources/onlinePayWS-desa.wsdl', // 'http://192.168.254.65:8080/process/onlinePayWS?wsdl',
@@ -77,9 +77,9 @@ module.exports = {
 	},
 	security: {
 		itau: {
-      providerId: 31,
-      apiKey: '$2y$10$L2E1AYypB4J.mkKTSqXZbOS.wfmrsWXX3OAEkLEcJR2Kz3OT/tGs.',
-      apiKeyUser: '$2y$10$bnJAORFOIQSAHpNQ0T0Q5.NTlcaQrGj0c0ve.e02TpONZHJwEt5k.'
+			providerId: 31,
+			apiKey: '$2y$10$L2E1AYypB4J.mkKTSqXZbOS.wfmrsWXX3OAEkLEcJR2Kz3OT/tGs.',
+			apiKeyUser: '$2y$10$bnJAORFOIQSAHpNQ0T0Q5.NTlcaQrGj0c0ve.e02TpONZHJwEt5k.'
 		}
 	},
 	log: {
