@@ -4,6 +4,10 @@
 const PORT = process.env.PORT || 1337;
 const ENV = process.env.NODE_ENV || 'production';
 
+if (ENV === 'production' && process.env.NEWRELIC_LICENSE_KEY) {
+  require('newrelic')
+}
+
 global.Koa = {};
 global.Koa.config = require('./config/environment/' + ENV);
 global.Koa.log = require('./config/logger');

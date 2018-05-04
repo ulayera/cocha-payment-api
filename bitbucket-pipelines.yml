@@ -4,37 +4,52 @@
 # You can specify a custom docker image from Dockerhub as your build environment
 image:
   name: mhimmercocha/node
-  username: $USERNAME
-  password: $PASSWORD
-  email: $EMAIL
+  username: $DOCKERHUB_USERNAME
+  password: $DOCKERHUB_PASSWORD
+  email: $DOCKERHUB_EMAIL
 
-pipelines: 
+pipelines:
   custom:
-    deploy-to-prod:
+    deploy-to-development:
       - step:
+          name: Deploy to development
+          deployment: test
           script:
-            - cocha-deployApi -a payment -e production -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
-  default:
-    - step:
-        script:
-          - echo "This step should never be executed"
-          - echo "This script runs on all branches that don't have any specific pipeline assigned in 'branches'."
+            - cocha-deployApi -a payment -e development -c `git rev-parse --short $BITBUCKET_COMMIT`
+    deploy-to-qa:
+      - step:
+          name: Deploy to QA
+          deployment: staging
+          script:
+            - cocha-deployApi -a payment -e qa -c `git rev-parse --short $BITBUCKET_COMMIT`
+    deploy-to-production:
+      - step:
+          name: Deploy to production
+          deployment: production
+          script:
+            - cocha-deployApi -a payment -e production -c `git rev-parse --short $BITBUCKET_COMMIT`
   branches:
-    '**':
-      - step:
-          script:
-            - echo "some previous step"
     master:
       - step:
+          name: Build
           caches:
             - node
           script:
-            - npm install
-            - cocha-deployApi -a payment -e development -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
-            - cocha-deployApi -a payment -e qa -b $BITBUCKET_BRANCH -c `git rev-parse --short $BITBUCKET_COMMIT`
-    hotfixes-*:
+            - npm i
+#            - npm run lint
+      # - step:
+      #     name: Sending code to Sonarqube
+      #     caches:
+      #       - node
+      #     script:
+      #       - npm run sonar
       - step:
-          caches:
-            - node
+          name: Deploy to Development
+          deployment: test
           script:
-            - npm install
+            - cocha-deployApi -a payment -e development -c `git rev-parse --short $BITBUCKET_COMMIT`
+      - step:
+          name: Deploy to QA
+          deployment: staging
+          script:
+            - cocha-deployApi -a payment -e qa -c `git rev-parse --short $BITBUCKET_COMMIT`

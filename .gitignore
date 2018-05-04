@@ -125,3 +125,6 @@ ecosystem.json
 
 ################################################
 
+.sonarlint
+.scannerwork
+yarn.lock
