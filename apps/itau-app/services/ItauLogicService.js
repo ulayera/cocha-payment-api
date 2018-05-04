@@ -205,7 +205,7 @@ async function checkPaymentAndRetry(ctx) {
   } else {
     let status = _.find(session.statuses,
       status =>
-        status.status.tokenWebPay === Koa.config.states.paid &&
+        status.status === Koa.config.states.paid &&
         status.method.toLowerCase() === 'itau'
     );
     let spendFrozenAmountData = await spendFrozenAmount({
